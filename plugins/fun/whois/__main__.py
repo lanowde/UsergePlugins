@@ -16,10 +16,15 @@ from pyrogram import enums
 from userge import userge, Message
 
 
-@userge.on_cmd("whois", about={
-    'header': "use this to get any user details",
-    'usage': "just reply to any user message or add user_id or username",
-    'examples': "{tr}whois [user_id | username]"}, allow_channels=False)
+@userge.on_cmd(
+    "whois",
+    about={
+        "header": "use this to get any user details",
+        "usage": "just reply to any user message or add user_id or username",
+        "examples": "{tr}whois [user_id | username]",
+    },
+    allow_channels=False,
+)
 async def who_is(message: Message):
     await message.edit("`Collecting Whois Info.. Hang on!`")
     user_id = message.input_str
@@ -31,7 +36,9 @@ async def who_is(message: Message):
             await message.err("no valid user_id or message specified")
             return
     elif message.reply_to_message and message.reply_to_message.from_user:
-        from_user = await message.client.get_users(message.reply_to_message.from_user.id)
+        from_user = await message.client.get_users(
+            message.reply_to_message.from_user.id
+        )
         from_chat = await message.client.get_chat(message.reply_to_message.from_user.id)
     else:
         await message.err("no valid user_id or message specified")
@@ -59,19 +66,24 @@ async def who_is(message: Message):
         message_out_str += f"<b>📝 Bio:</b> <code>{from_chat.bio}</code>\n\n"
         message_out_str += f"<b>👁 Last Seen:</b> <code>{from_user.status}</code>\n"
         message_out_str += "<b>🔗 Permanent Link To Profile:</b> "
-        message_out_str += f"<a href='tg://user?id={from_user.id}'>{from_user.first_name}</a>"
+        message_out_str += (
+            f"<a href='tg://user?id={from_user.id}'>{from_user.first_name}</a>"
+        )
 
         s_perm = True
         if message.chat.permissions:
             s_perm = bool(message.chat.permissions.can_send_media_messages)
         if from_user.photo and s_perm:
             local_user_photo = await message.client.download_media(
-                message=from_user.photo.big_file_id)
-            await message.client.send_photo(chat_id=message.chat.id,
-                                            photo=local_user_photo,
-                                            caption=message_out_str,
-                                            parse_mode=enums.ParseMode.HTML,
-                                            disable_notification=True)
+                message=from_user.photo.big_file_id
+            )
+            await message.client.send_photo(
+                chat_id=message.chat.id,
+                photo=local_user_photo,
+                caption=message_out_str,
+                parse_mode=enums.ParseMode.HTML,
+                disable_notification=True,
+            )
             os.remove(local_user_photo)
             await message.delete()
         else:

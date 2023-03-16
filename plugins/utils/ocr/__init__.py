@@ -17,10 +17,7 @@ OCR_SPACE_API_KEY = secured_env("OCR_SPACE_API_KEY")
 
 
 @pool.run_in_thread
-def ocr_space_file(filename,
-                   language='eng',
-                   overlay=False,
-                   api_key=OCR_SPACE_API_KEY):
+def ocr_space_file(filename, language="eng", overlay=False, api_key=OCR_SPACE_API_KEY):
     """
     OCR.space API request with local file.
         Python3.5 - not tested on 2.7
@@ -35,13 +32,13 @@ def ocr_space_file(filename,
     :return: Result in JSON format.
     """
     payload = {
-        'isOverlayRequired': overlay,
-        'apikey': api_key,
-        'language': language,
+        "isOverlayRequired": overlay,
+        "apikey": api_key,
+        "language": language,
     }
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         r = requests.post(
-            'https://api.ocr.space/parse/image',
+            "https://api.ocr.space/parse/image",
             files={filename: f},
             data=payload,
         )

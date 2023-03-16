@@ -26,38 +26,35 @@ from userge import userge, Message
 LOG = userge.getLogger(__name__)
 STATUS = False
 URI = "https://www.brandcrowd.com/maker/logos"
-HEADERS = {"User-Agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) '
-                         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37'
-                         '.0.2062.124 Safari/537.36'}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37"
+    ".0.2062.124 Safari/537.36"
+}
 
 
 async def logo_maker(text: str, keyword: str = "name"):
-    """ fetch logos from website """
+    """fetch logos from website"""
     async with aiohttp.ClientSession(headers=HEADERS) as session:
-        resp = await session.get(
-            URI, params={'text': text, 'SearchText': keyword}
-        )
+        resp = await session.get(URI, params={"text": text, "SearchText": keyword})
         soup = BeautifulSoup(await resp.text(), "lxml")
-    embed = soup.findAll("div", {'class': "responsive-embed"})
+    embed = soup.findAll("div", {"class": "responsive-embed"})
     img_tags = [(i.find("img"), i.find("a")) for i in embed]
     logos = []
     for img in img_tags:
         src = img[0].get("src")
         if src:
-            logos.append(
-                (src, getattr(img[1], 'get', {}.get)("href", ""))
-            )
+            logos.append((src, getattr(img[1], "get", {}.get)("href", "")))
     return logos
 
 
 async def download(uri: str, file_name: str):
-    """ download a uri """
+    """download a uri"""
     if not os.path.exists("temp_logos/"):
         os.mkdir("temp_logos/")
-    async with \
-            aiofiles.open(file_name, "wb+") as file, \
-            aiohttp.ClientSession(headers=HEADERS) as session, \
-            session.get(uri) as response:
+    async with aiofiles.open(file_name, "wb+") as file, aiohttp.ClientSession(
+        headers=HEADERS
+    ) as session, session.get(uri) as response:
         while 1:
             chunk = await response.content.read(512)
             if not chunk:
@@ -66,7 +63,7 @@ async def download(uri: str, file_name: str):
 
 
 async def dispatch(message: Message, logos: List[Tuple[str]]):
-    """ dispatch logos to chat """
+    """dispatch logos to chat"""
     global STATUS  # pylint: disable=global-statement
     group: List[InputMediaPhoto] = []
     paths: List[str] = []
@@ -84,7 +81,8 @@ async def dispatch(message: Message, logos: List[Tuple[str]]):
             if len(group) == 10:
                 try:
                     await status.edit(
-                        f"`Uploading Batch {batch}/{round(len(logos) / 10)}...`")
+                        f"`Uploading Batch {batch}/{round(len(logos) / 10)}...`"
+                    )
                     await message.reply_media_group(group)
                 except Exception as pyro:
                     LOG.exception(pyro)
@@ -95,8 +93,7 @@ async def dispatch(message: Message, logos: List[Tuple[str]]):
             LOG.exception(e)
 
     if len(group) >= 2:
-        await status.edit(
-            f"`Uploading Batch {batch}/{round(len(logos)/10)}`")
+        await status.edit(f"`Uploading Batch {batch}/{round(len(logos)/10)}`")
         await message.reply_media_group(group)
     elif len(group) == 1:
         await message.reply_photo(group[0].media, caption=group[0].caption)
@@ -106,15 +103,16 @@ async def dispatch(message: Message, logos: List[Tuple[str]]):
         shutil.rmtree("temp_logos/", ignore_errors=True)
 
 
-@userge.on_cmd("logo", about={
-    'header': "Get a logo from brandcrowd",
-    'usage': "{tr}logo text:keyword",
-    'examples': [
-        "{tr}logo Userge", "{tr}logo Userge:bot"
-    ]
-})
+@userge.on_cmd(
+    "logo",
+    about={
+        "header": "Get a logo from brandcrowd",
+        "usage": "{tr}logo text:keyword",
+        "examples": ["{tr}logo Userge", "{tr}logo Userge:bot"],
+    },
+)
 async def jv_logo_maker(message: Message):
-    """ make logos """
+    """make logos"""
     global STATUS  # pylint: disable=global-statement
     if STATUS:
         return await message.err("Let the current process be completed!!")
@@ -126,7 +124,7 @@ async def jv_logo_maker(message: Message):
 
     type_keyword = "name"
     type_text = jv_text
-    if ':' in jv_text:
+    if ":" in jv_text:
         type_text, type_keyword = jv_text.split(":", 1)
     try:
         logos = await logo_maker(type_text, type_keyword)

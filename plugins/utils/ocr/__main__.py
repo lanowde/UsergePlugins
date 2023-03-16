@@ -18,12 +18,17 @@ from .. import ocr
 CHANNEL = userge.getCLogger(__name__)
 
 
-@userge.on_cmd("ocr", about={
-    'header': "use this to run ocr reader",
-    'description': "get ocr result for images (file size limit = 1MB)",
-    'examples': [
-        "{tr}ocr [reply to image]",
-        "{tr}ocr eng [reply to image] (get lang codes from 'https://ocr.space/ocrapi')"]})
+@userge.on_cmd(
+    "ocr",
+    about={
+        "header": "use this to run ocr reader",
+        "description": "get ocr result for images (file size limit = 1MB)",
+        "examples": [
+            "{tr}ocr [reply to image]",
+            "{tr}ocr eng [reply to image] (get lang codes from 'https://ocr.space/ocrapi')",
+        ],
+    },
+)
 async def ocr_gen(message: Message):
     """
     this function can generate ocr output for a image file
@@ -34,7 +39,9 @@ async def ocr_gen(message: Message):
             "<a href='https://eepurl.com/bOLOcf'>HERE</a> "
             "<code>& add it to Heroku config vars</code> (<code>OCR_SPACE_API_KEY</code>)",
             disable_web_page_preview=True,
-            parse_mode=enums.ParseMode.HTML, del_in=0)
+            parse_mode=enums.ParseMode.HTML,
+            del_in=0,
+        )
         return
 
     if not message.reply_to_message:
@@ -49,12 +56,14 @@ async def ocr_gen(message: Message):
         await message.edit(
             r"`Couldn't read it.. (╯‵□′)╯︵┻━┻`"
             "\n`I guess I need new glasses.. 👓`"
-            f"\n\n**ERROR**: `{e_f}`", del_in=0)
+            f"\n\n**ERROR**: `{e_f}`",
+            del_in=0,
+        )
         os.remove(file_name)
         return
     else:
         await message.edit(
-            "**Here's what I could read from it:**"
-            f"\n\n`{ParsedText}`")
+            "**Here's what I could read from it:**" f"\n\n`{ParsedText}`"
+        )
         os.remove(file_name)
         return await CHANNEL.log("`ocr` command succefully executed")

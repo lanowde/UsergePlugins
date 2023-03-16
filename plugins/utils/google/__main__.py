@@ -12,22 +12,29 @@ from search_engine_parser import GoogleSearch
 
 from userge import userge, Message
 
-GoogleSearch.parse_soup = lambda __, _: _.find_all("div", class_="Gx5Zad fP1Qef xpd EtOod pkphOe")
+GoogleSearch.parse_soup = lambda __, _: _.find_all(
+    "div", class_="Gx5Zad fP1Qef xpd EtOod pkphOe"
+)
 
 
-@userge.on_cmd("google", about={
-    'header': "do a Google search",
-    'flags': {
-        '-p': "page of results to return (default to 1)",
-        '-l': "limit the number of returned results (defaults to 5)(max 10)"},
-    'usage': "{tr}google [flags] [query | reply to msg]",
-    'examples': "{tr}google -p4 -l10 github-userge"})
+@userge.on_cmd(
+    "google",
+    about={
+        "header": "do a Google search",
+        "flags": {
+            "-p": "page of results to return (default to 1)",
+            "-l": "limit the number of returned results (defaults to 5)(max 10)",
+        },
+        "usage": "{tr}google [flags] [query | reply to msg]",
+        "examples": "{tr}google -p4 -l10 github-userge",
+    },
+)
 async def gsearch(message: Message):
     query = message.filtered_input_str
     await message.edit(f"**Googling** for `{query}` ...")
     flags = message.flags
-    page = int(flags.get('-p', 1))
-    limit = int(flags.get('-l', 5))
+    page = int(flags.get("-p", 1))
+    limit = int(flags.get("-l", 5))
     if message.reply_to_message:
         query = message.reply_to_message.text
     if not query:
@@ -50,5 +57,6 @@ async def gsearch(message: Message):
         except (IndexError, KeyError):
             break
     output = f"**Google Search:**\n`{query}`\n\n**Results:**\n{output}"
-    await message.edit_or_send_as_file(text=output, caption=query,
-                                       disable_web_page_preview=True)
+    await message.edit_or_send_as_file(
+        text=output, caption=query, disable_web_page_preview=True
+    )

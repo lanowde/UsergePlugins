@@ -18,16 +18,20 @@ from userge.utils import parse_buttons as pb, get_file_id_of_media
 log = userge.getLogger(__name__)
 
 
-@userge.on_cmd("cbutton", about={
-    'header': "Create buttons Using bot",
-    'description': "First Create a Bot via @Botfather and "
-                   "Add bot token To Config Vars",
-    'usage': "{tr}cbutton [reply to button msg]",
-    'buttons': "<code>[name][buttonurl:link]</code> - <b>add a url button</b>\n"
-               "<code>[name][buttonurl:link:same]</code> - "
-               "<b>add a url button to same row</b>"})
+@userge.on_cmd(
+    "cbutton",
+    about={
+        "header": "Create buttons Using bot",
+        "description": "First Create a Bot via @Botfather and "
+        "Add bot token To Config Vars",
+        "usage": "{tr}cbutton [reply to button msg]",
+        "buttons": "<code>[name][buttonurl:link]</code> - <b>add a url button</b>\n"
+        "<code>[name][buttonurl:link:same]</code> - "
+        "<b>add a url button to same row</b>",
+    },
+)
 async def create_button(msg: Message):
-    """ Create Buttons Using Bot """
+    """Create Buttons Using Bot"""
     if config.BOT_TOKEN is None:
         await msg.err("First Create a Bot via @Botfather to Create Buttons...")
         return
@@ -37,13 +41,12 @@ async def create_button(msg: Message):
         replied = msg.reply_to_message
         if replied:
             try:
-                replied = await client.get_messages(
-                    replied.chat.id,
-                    replied.id
-                )
+                replied = await client.get_messages(replied.chat.id, replied.id)
             except ChannelInvalid:
-                await msg.err("`Are you sure that your bot is here?`\n"
-                              "If not , then add it here")
+                await msg.err(
+                    "`Are you sure that your bot is here?`\n"
+                    "If not , then add it here"
+                )
                 return
     else:
         client = msg.client
@@ -70,13 +73,15 @@ async def create_button(msg: Message):
                 file_id=file_id,
                 caption=text,
                 reply_to_message_id=message_id,
-                reply_markup=markup)
+                reply_markup=markup,
+            )
         else:
             await client.send_message(
                 chat_id=msg.chat.id,
                 text=text,
                 reply_to_message_id=message_id,
-                reply_markup=markup)
+                reply_markup=markup,
+            )
     except UserIsBot:
         await msg.err("oops, your Bot is not here to send Msg!")
     except BadRequest as err:

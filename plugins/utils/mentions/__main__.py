@@ -29,10 +29,10 @@ async def _init():
 @userge.on_cmd(
     "mentions",
     about="Toggles Mentions, "
-          "if enabled Bot will send Message if anyone mention you."
+    "if enabled Bot will send Message if anyone mention you.",
 )
 async def toggle_mentions(msg: Message):
-    """ toggle mentions """
+    """toggle mentions"""
     global TOGGLE  # pylint: disable=global-statement
     if TOGGLE:
         TOGGLE = False
@@ -41,12 +41,19 @@ async def toggle_mentions(msg: Message):
     await SAVED_SETTINGS.update_one(
         {"_id": "MENTION_TOGGLE"}, {"$set": {"data": TOGGLE}}, upsert=True
     )
-    await msg.edit(f"Mentions Alerter **{'enabled' if TOGGLE else 'disabled'}** Successfully.")
+    await msg.edit(
+        f"Mentions Alerter **{'enabled' if TOGGLE else 'disabled'}** Successfully."
+    )
 
 
 @userge.on_filters(
-    ~filters.me & ~filters.bot & ~filters.service
-    & (filters.mentioned | filters.private), group=1, allow_via_bot=False)
+    ~filters.me
+    & ~filters.bot
+    & ~filters.service
+    & (filters.mentioned | filters.private),
+    group=1,
+    allow_via_bot=False,
+)
 async def handle_mentions(msg: Message):
 
     if TOGGLE is False:
@@ -73,7 +80,7 @@ async def handle_mentions(msg: Message):
             chat_id=userge.id if userge.has_bot else config.LOG_CHANNEL_ID,
             text=text,
             disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([[button]])
+            reply_markup=InlineKeyboardMarkup([[button]]),
         )
     except PeerIdInvalid:
         if userge.dual_mode:
@@ -82,7 +89,7 @@ async def handle_mentions(msg: Message):
                 chat_id=userge.id if userge.has_bot else config.LOG_CHANNEL_ID,
                 text=text,
                 disable_web_page_preview=True,
-                reply_markup=InlineKeyboardMarkup([[button]])
+                reply_markup=InlineKeyboardMarkup([[button]]),
             )
         else:
             raise

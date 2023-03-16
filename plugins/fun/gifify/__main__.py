@@ -17,15 +17,17 @@ import lottie
 from userge import userge, Message, config, pool
 
 
-@userge.on_cmd("gif", about={
-    'header': "Convert Telegram Animated Sticker to GiF",
-    'usage': "{tr}gif [quality (optional)] [reply to sticker]\n"
-             "Max quality : 720p",
-    'examples': [
-        "{tr}gif [reply to sticker]",
-        "{tr}gif 512 [reply to Sticker]"]})
+@userge.on_cmd(
+    "gif",
+    about={
+        "header": "Convert Telegram Animated Sticker to GiF",
+        "usage": "{tr}gif [quality (optional)] [reply to sticker]\n"
+        "Max quality : 720p",
+        "examples": ["{tr}gif [reply to sticker]", "{tr}gif 512 [reply to Sticker]"],
+    },
+)
 async def gifify(msg: Message):
-    """ Convert Animated Sticker to GiF """
+    """Convert Animated Sticker to GiF"""
     replied = msg.reply_to_message
     if not (replied and replied.sticker and replied.sticker.file_name.endswith(".tgs")):
         await msg.err("Reply to Animated Sticker Only to Convert GiF", del_in=5)
@@ -43,15 +45,14 @@ async def gifify(msg: Message):
         quality = 512
     if not os.path.isdir(config.Dynamic.DOWN_PATH):
         os.makedirs(config.Dynamic.DOWN_PATH)
-    await msg.try_to_edit("```\nConverting this Sticker to GiF...\n"
-                          "This may takes upto few mins...```")
+    await msg.try_to_edit(
+        "```\nConverting this Sticker to GiF...\n" "This may takes upto few mins...```"
+    )
     dls = await msg.client.download_media(replied, file_name=config.Dynamic.DOWN_PATH)
     converted_gif = await _tgs_to_gif(dls, quality)
     await msg.client.send_animation(
-        msg.chat.id,
-        converted_gif,
-        unsave=True,
-        reply_to_message_id=replied.id)
+        msg.chat.id, converted_gif, unsave=True, reply_to_message_id=replied.id
+    )
     await msg.delete()
     os.remove(converted_gif)
 
@@ -59,7 +60,9 @@ async def gifify(msg: Message):
 @pool.run_in_thread
 def _tgs_to_gif(sticker_path: str, quality: int = 256) -> str:
     dest = os.path.join(config.Dynamic.DOWN_PATH, "animation.gif")
-    with open(dest, 'wb') as t_g:
-        lottie.exporters.gif.export_gif(lottie.parsers.tgs.parse_tgs(sticker_path), t_g, quality, 1)
+    with open(dest, "wb") as t_g:
+        lottie.exporters.gif.export_gif(
+            lottie.parsers.tgs.parse_tgs(sticker_path), t_g, quality, 1
+        )
     os.remove(sticker_path)
     return dest

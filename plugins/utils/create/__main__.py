@@ -13,12 +13,9 @@ from userge import userge, Message
 
 @userge.on_cmd(
     "channel",
-    about={
-        'header': "Creates a channel",
-        'usage': "{tr}channel TheUserge | Hello"
-    },
+    about={"header": "Creates a channel", "usage": "{tr}channel TheUserge | Hello"},
     allow_channels=False,
-    allow_via_bots=False
+    allow_via_bots=False,
 )
 async def create_channel(message: Message):
     try:
@@ -26,8 +23,8 @@ async def create_channel(message: Message):
         if not args:
             return await message.err("title not found!")
 
-        if '|' in args:
-            title, des = args.split('|', maxsplit=1)
+        if "|" in args:
+            title, des = args.split("|", maxsplit=1)
         else:
             title, des = args, "This channel is created using @TheUserge"
         if len(des) > 256:

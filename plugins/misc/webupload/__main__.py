@@ -17,16 +17,31 @@ from userge import userge, Message, config
 from userge.utils import progress
 
 
-@userge.on_cmd("web ?(.+?|) (anonfiles|transfer|filebin|anonymousfiles"
-               "|megaupload|bayfiles|vshare|0x0|fileio|ninja|infura|bashupload|cat|litter)",
-               about={
-                   'header': "upload files to web",
-                   'usage': "{tr}web [file path | reply to media] [site name]",
-                   'examples': "{tr}web downloads/test.mp3 anonymousfiles",
-                   'types': [
-                       'anonfiles', 'transfer', 'filebin', 'anonymousfiles',
-                       'megaupload', 'bayfiles', 'vshare', '0x0', 'fileio',
-                       'ninja', 'infura', 'bashupload', 'cat', 'litter']})
+@userge.on_cmd(
+    "web ?(.+?|) (anonfiles|transfer|filebin|anonymousfiles"
+    "|megaupload|bayfiles|vshare|0x0|fileio|ninja|infura|bashupload|cat|litter)",
+    about={
+        "header": "upload files to web",
+        "usage": "{tr}web [file path | reply to media] [site name]",
+        "examples": "{tr}web downloads/test.mp3 anonymousfiles",
+        "types": [
+            "anonfiles",
+            "transfer",
+            "filebin",
+            "anonymousfiles",
+            "megaupload",
+            "bayfiles",
+            "vshare",
+            "0x0",
+            "fileio",
+            "ninja",
+            "infura",
+            "bashupload",
+            "cat",
+            "litter",
+        ],
+    },
+)
 async def web(message: Message):
     await message.edit("`Processing ...`")
     input_str = message.matches[0].group(1)
@@ -38,7 +53,7 @@ async def web(message: Message):
             message=message.reply_to_message,
             file_name=config.Dynamic.DOWN_PATH,
             progress=progress,
-            progress_args=(message, "trying to download")
+            progress_args=(message, "trying to download"),
         )
         if message.process_is_canceled:
             await message.err("Process Canceled!")
@@ -69,11 +84,11 @@ async def web(message: Message):
     process = await asyncio.create_subprocess_exec(
         *shlex.split(cmd),
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        stderr=asyncio.subprocess.PIPE,
     )
     response, err = await process.communicate()
-    links = '\n'.join(re.findall(r'https?://[^\"\']+', response.decode()))
+    links = "\n".join(re.findall(r"https?://[^\"\']+", response.decode()))
     if links:
         await message.edit(f"**Found these links** :\n{links}")
     else:
-        await message.edit('`' + response.decode() + err.decode() + '`')
+        await message.edit("`" + response.decode() + err.decode() + "`")

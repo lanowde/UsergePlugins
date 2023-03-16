@@ -8,29 +8,31 @@ from typing import List, Tuple, Optional
 
 from youtubesearchpython import VideosSearch
 
-from pyrogram.types import (InlineKeyboardMarkup,
-                            InlineKeyboardButton,
-                            CallbackQuery)
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import enums
 
 from userge import userge, Message, pool
 from userge.utils import runcmd, time_formatter, get_custom_import_re
-from . import (QUEUE, LOG,
-               CURRENT_SONG,
-               CONTROL_CHAT_IDS,
-               GROUP_CALL_PARTICIPANTS,
-               MAX_DURATION,
-               YTDL_PATH,
-               Dynamic, Vars)
+from . import (
+    QUEUE,
+    LOG,
+    CURRENT_SONG,
+    CONTROL_CHAT_IDS,
+    GROUP_CALL_PARTICIPANTS,
+    MAX_DURATION,
+    YTDL_PATH,
+    Dynamic,
+    Vars,
+)
 
 
 ytdl = get_custom_import_re(YTDL_PATH)
 
 _SCHEDULED = "[{title}]({link}) Scheduled to QUEUE on #{position} position"
 yt_regex = re.compile(
-    r'(https?://)?(www\.)?'
-    r'(youtube|youtu|youtube-nocookie)\.(com|be)/'
-    r'(watch\?v=|embed/|v/|.+\?v=)?([^&=%?]{11})'
+    r"(https?://)?(www\.)?"
+    r"(youtube|youtu|youtube-nocookie)\.(com|be)/"
+    r"(watch\?v=|embed/|v/|.+\?v=)?([^&=%?]{11})"
 )
 
 
@@ -44,18 +46,18 @@ async def reply_text(
     markup=None,
     to_reply: bool = True,
     parse_mode: enums.ParseMode = None,
-    del_in: int = -1
+    del_in: int = -1,
 ) -> Message:
     kwargs = {
-        'chat_id': msg.chat.id,
-        'text': text,
-        'del_in': del_in,
-        'reply_to_message_id': msg.id if to_reply else None,
-        'reply_markup': markup,
-        'disable_web_page_preview': True
+        "chat_id": msg.chat.id,
+        "text": text,
+        "del_in": del_in,
+        "reply_to_message_id": msg.id if to_reply else None,
+        "reply_markup": markup,
+        "disable_web_page_preview": True,
     }
     if parse_mode:
-        kwargs['parse_mode'] = parse_mode
+        kwargs["parse_mode"] = parse_mode
     new_msg = await msg.client.send_message(**kwargs)
     if to_reply and not isinstance(new_msg, bool):
         new_msg.reply_to_message = msg
@@ -67,7 +69,7 @@ def get_scheduled_text(title: str, link: str = None) -> str:
 
 
 def vc_chat(func):
-    """ decorator for Video-Chat chat """
+    """decorator for Video-Chat chat"""
 
     async def checker(msg: Message):
         if Vars.CHAT_ID and msg.chat.id in ([Vars.CHAT_ID] + CONTROL_CHAT_IDS):
@@ -83,12 +85,14 @@ def vc_chat(func):
 
 
 def check_enable_for_all(func):
-    """ decorator to check cmd is_enable for others """
+    """decorator to check cmd is_enable for others"""
 
     async def checker(msg: Message):
         is_self = msg.from_user and msg.from_user.id == userge.id
         user_in_vc = msg.from_user and msg.from_user.id in GROUP_CALL_PARTICIPANTS
-        sender_chat_in_vc = msg.sender_chat and msg.sender_chat.id in GROUP_CALL_PARTICIPANTS
+        sender_chat_in_vc = (
+            msg.sender_chat and msg.sender_chat.id in GROUP_CALL_PARTICIPANTS
+        )
 
         if is_self or (Dynamic.CMDS_FOR_ALL and (user_in_vc or sender_chat_in_vc)):
             await func(msg)
@@ -99,7 +103,7 @@ def check_enable_for_all(func):
 
 
 def check_cq_for_all(func):
-    """ decorator to check CallbackQuery users """
+    """decorator to check CallbackQuery users"""
 
     async def checker(_, cq: CallbackQuery):
         is_self = cq.from_user and cq.from_user.id == userge.id
@@ -108,8 +112,7 @@ def check_cq_for_all(func):
         if is_self or (Dynamic.CMDS_FOR_ALL and user_in_vc):
             await func(cq)
         else:
-            await cq.answer(
-                "⚠️ You don't have permission to use me", show_alert=True)
+            await cq.answer("⚠️ You don't have permission to use me", show_alert=True)
 
     checker.__doc__ = func.__doc__
 
@@ -117,63 +120,63 @@ def check_cq_for_all(func):
 
 
 def default_markup() -> InlineKeyboardMarkup:
-    """ default markup for playing text """
+    """default markup for playing text"""
 
     return InlineKeyboardMarkup(
         [
+            [InlineKeyboardButton(text=get_player_string(), callback_data="player")],
             [
-                InlineKeyboardButton(
-                    text=get_player_string(), callback_data='player')
+                InlineKeyboardButton(text="⏩ Skip", callback_data="skip"),
+                InlineKeyboardButton(text="🗒 Queue", callback_data="queue"),
             ],
-            [
-                InlineKeyboardButton(
-                    text="⏩ Skip", callback_data="skip"),
-                InlineKeyboardButton(
-                    text="🗒 Queue", callback_data="queue")
-            ]
-        ])
+        ]
+    )
 
 
 def volume_button_markup() -> InlineKeyboardMarkup:
-    """ volume buttons markup """
+    """volume buttons markup"""
 
     buttons = [
         [
             InlineKeyboardButton(text="🔈 50", callback_data="vol(50)"),
-            InlineKeyboardButton(text="🔉 100", callback_data="vol(100)")
+            InlineKeyboardButton(text="🔉 100", callback_data="vol(100)"),
         ],
         [
             InlineKeyboardButton(text="🔉 150", callback_data="vol(150)"),
-            InlineKeyboardButton(text="🔊 200", callback_data="vol(200)")
+            InlineKeyboardButton(text="🔊 200", callback_data="vol(200)"),
         ],
         [
             InlineKeyboardButton(text="🖌 Enter Manually", callback_data="vol(custom)"),
-        ]
+        ],
     ]
 
     return InlineKeyboardMarkup(buttons)
 
 
 def get_player_string() -> str:
-    current_dur = CURRENT_SONG.get('pause', time.time())
-    played_duration = round(current_dur - CURRENT_SONG['start'])
-    duration = played_duration if CURRENT_SONG.get('is_live', False) else CURRENT_SONG['duration']
+    current_dur = CURRENT_SONG.get("pause", time.time())
+    played_duration = round(current_dur - CURRENT_SONG["start"])
+    duration = (
+        played_duration
+        if CURRENT_SONG.get("is_live", False)
+        else CURRENT_SONG["duration"]
+    )
     try:
         percentage = played_duration * 100 / duration
     except ZeroDivisionError:
         percentage = 100
     player_string = "▷ {0}◉{1}".format(
-        ''.join(["━" for _ in range(math.floor(percentage / 6.66))]),
-        ''.join(["─" for _ in range(15 - math.floor(percentage / 6.66))])
+        "".join(["━" for _ in range(math.floor(percentage / 6.66))]),
+        "".join(["─" for _ in range(15 - math.floor(percentage / 6.66))]),
     )
     return f"{time_formatter(played_duration)}   {player_string}    {time_formatter(duration)}"
 
 
 @pool.run_in_thread
 def get_song(name: str) -> Tuple[str, str]:
-    results: List[dict] = VideosSearch(name, limit=1).result()['result']
+    results: List[dict] = VideosSearch(name, limit=1).result()["result"]
     if results:
-        return results[0].get('title', name), results[0].get('link')
+        return results[0].get("title", name), results[0].get("link")
     return name, ""
 
 
@@ -192,8 +195,7 @@ def get_song_info(url: str) -> Tuple[str, int]:
 
 async def get_stream_link(link: str) -> str:
     yt_dl = (os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")).replace("_", "-")
-    cmd = yt_dl + \
-        " --geo-bypass -g -f best[height<=?480][width<=?854]/best " + link
+    cmd = yt_dl + " --geo-bypass -g -f best[height<=?480][width<=?854]/best " + link
     out, err, _, _ = await runcmd(cmd)
     if err:
         LOG.error(err)
@@ -220,18 +222,17 @@ async def get_file_info(file) -> Tuple[int, int, bool, bool]:
         output = json.loads(out) or {}
     except JSONDecodeError:
         output = {}
-    streams = output.get('streams', [])
+    streams = output.get("streams", [])
     width, height, have_audio, have_video = 0, 0, False, False
     for stream in streams:
-        if (
-            stream.get('codec_type', '') == 'video'
-            and stream.get('codec_name', '') not in ('png', 'jpeg', 'jpg')
-        ):
-            width = int(stream.get('width', 0))
-            height = int(stream.get('height', 0))
+        if stream.get("codec_type", "") == "video" and stream.get(
+            "codec_name", ""
+        ) not in ("png", "jpeg", "jpg"):
+            width = int(stream.get("width", 0))
+            height = int(stream.get("height", 0))
             if width and height:
                 have_video = True
-        elif stream.get('codec_type', '') == "audio":
+        elif stream.get("codec_type", "") == "audio":
             have_audio = True
     return height, width, have_audio, have_video
 

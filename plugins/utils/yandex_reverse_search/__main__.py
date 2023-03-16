@@ -17,11 +17,16 @@ from telegraph import upload_file
 from userge import userge, config, Message, pool
 
 
-@userge.on_cmd("yrs", about={
-    'header': "Yandex Reverse Search",
-    'description': "Reverse Search any Image/sticker",
-    'usage': "{tr}yrs [Reply to image | sticker]",
-    'note': "Gif & Animated Stickers won't work!"}, check_downpath=True)
+@userge.on_cmd(
+    "yrs",
+    about={
+        "header": "Yandex Reverse Search",
+        "description": "Reverse Search any Image/sticker",
+        "usage": "{tr}yrs [Reply to image | sticker]",
+        "note": "Gif & Animated Stickers won't work!",
+    },
+    check_downpath=True,
+)
 async def labstack(message: Message):
     replied = message.reply_to_message
     if replied and (replied.sticker or replied.photo):

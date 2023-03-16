@@ -18,9 +18,13 @@ from pyrogram import enums
 from userge import userge, Message
 
 
-@userge.on_cmd("livesubs", about={
-    'header': "Live Subscriber count for Public Groups and Channels",
-    'usage': "{tr}livesubs [chat id]"})
+@userge.on_cmd(
+    "livesubs",
+    about={
+        "header": "Live Subscriber count for Public Groups and Channels",
+        "usage": "{tr}livesubs [chat id]",
+    },
+)
 async def live_subs(msg: Message):
     input_ = msg.input_str
     chat = msg.chat if msg.chat.type != enums.ChatType.PRIVATE else None

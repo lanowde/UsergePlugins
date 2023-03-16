@@ -18,12 +18,17 @@ from userge import userge, Message, config
 from userge.utils import take_screen_shot, runcmd
 
 
-@userge.on_cmd("meme", about={
-    'header': "Write text on any media. (๑¯ω¯๑)",
-    'description': "Top and bottom text are separated by ; ",
-    'usage': "{tr}meme [text on top] ; [text on bottom] as a reply."}, allow_via_bot=False)
+@userge.on_cmd(
+    "meme",
+    about={
+        "header": "Write text on any media. (๑¯ω¯๑)",
+        "description": "Top and bottom text are separated by ; ",
+        "usage": "{tr}meme [text on top] ; [text on bottom] as a reply.",
+    },
+    allow_via_bot=False,
+)
 async def meme_(message: Message):
-    """ meme for media """
+    """meme for media"""
     replied = message.reply_to_message
     if not (replied and message.input_str):
         await message.err("Nibba, reply to Media and give some input...")
@@ -39,14 +44,14 @@ async def meme_(message: Message):
     should_forward = False
     dls_loc = None
 
-    if (replied.photo or (
+    if replied.photo or (
         replied.sticker and replied.sticker.file_name.endswith(".webp")
-    )):
+    ):
         should_forward = True
     else:
         dls = await message.client.download_media(
-            message=replied,
-            file_name=config.Dynamic.DOWN_PATH)
+            message=replied, file_name=config.Dynamic.DOWN_PATH
+        )
         dls_loc = os.path.join(config.Dynamic.DOWN_PATH, os.path.basename(dls))
         if replied.sticker and replied.sticker.file_name.endswith(".tgs"):
             file_1 = os.path.join(config.Dynamic.DOWN_PATH, "meme.png")
@@ -72,7 +77,8 @@ async def meme_(message: Message):
         except YouBlockedUser:
             await message.err(
                 "this cmd not for you, If you want to use, Unblock **@MemeAutobot**",
-                del_in=5)
+                del_in=5,
+            )
             return
         if should_forward:
             await conv.forward_message(replied)

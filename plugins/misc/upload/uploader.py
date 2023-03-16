@@ -25,18 +25,22 @@ from .. import thumbnail
 
 CHANNEL = userge.getCLogger(__name__)
 
-LOGO_PATH = 'resources/userge.png'
+LOGO_PATH = "resources/userge.png"
 
 
 async def upload_path(message: Message, path: Path, del_path: bool):
     file_paths = []
     if path.exists():
+
         def explorer(_path: Path) -> None:
             if _path.is_file() and _path.stat().st_size:
                 file_paths.append(_path)
             elif _path.is_dir():
-                for i in sorted(_path.iterdir(), key=lambda a: sort_file_name_key(a.name)):
+                for i in sorted(
+                    _path.iterdir(), key=lambda a: sort_file_name_key(a.name)
+                ):
                     explorer(i)
+
         explorer(path)
     else:
         path = path.expanduser()
@@ -54,33 +58,49 @@ async def upload_path(message: Message, path: Path, del_path: bool):
             break
 
 
-async def upload(message: Message, path: Path, del_path: bool = False,
-                 extra: str = '', with_thumb: bool = True):
-    if 'wt' in message.flags:
+async def upload(
+    message: Message,
+    path: Path,
+    del_path: bool = False,
+    extra: str = "",
+    with_thumb: bool = True,
+):
+    if "wt" in message.flags:
         with_thumb = False
-    if 'r' in message.flags:
+    if "r" in message.flags:
         del_path = True
-    if path.name.lower().endswith(
-            (".mkv", ".mp4", ".webm", ".m4v")) and ('d' not in message.flags):
+    if path.name.lower().endswith((".mkv", ".mp4", ".webm", ".m4v")) and (
+        "d" not in message.flags
+    ):
         await vid_upload(message, path, del_path, extra, with_thumb)
-    elif path.name.lower().endswith(
-            (".mp3", ".flac", ".wav", ".m4a")) and ('d' not in message.flags):
+    elif path.name.lower().endswith((".mp3", ".flac", ".wav", ".m4a")) and (
+        "d" not in message.flags
+    ):
         await audio_upload(message, path, del_path, extra, with_thumb)
-    elif path.name.lower().endswith(
-            (".jpg", ".jpeg", ".png", ".bmp")) and ('d' not in message.flags):
+    elif path.name.lower().endswith((".jpg", ".jpeg", ".png", ".bmp")) and (
+        "d" not in message.flags
+    ):
         await photo_upload(message, path, del_path, extra)
     else:
         await doc_upload(message, path, del_path, extra, with_thumb)
 
 
-async def doc_upload(message: Message, path, del_path: bool = False,
-                     extra: str = '', with_thumb: bool = True):
+async def doc_upload(
+    message: Message,
+    path,
+    del_path: bool = False,
+    extra: str = "",
+    with_thumb: bool = True,
+):
     str_path = str(path)
     sent: Message = await message.client.send_message(
-        message.chat.id, f"`Uploading {str_path} as a doc ... {extra}`")
+        message.chat.id, f"`Uploading {str_path} as a doc ... {extra}`"
+    )
     start_t = datetime.now()
     thumb = await get_thumb(str_path) if with_thumb else None
-    await message.client.send_chat_action(message.chat.id, enums.ChatAction.UPLOAD_DOCUMENT)
+    await message.client.send_chat_action(
+        message.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
+    )
     try:
         msg = await message.client.send_document(
             chat_id=message.chat.id,
@@ -91,7 +111,7 @@ async def doc_upload(message: Message, path, del_path: bool = False,
             force_document=True,
             disable_notification=True,
             progress=progress,
-            progress_args=(message, f"uploading {extra}", str_path)
+            progress_args=(message, f"uploading {extra}", str_path),
         )
     except ValueError as e_e:
         await sent.edit(f"Skipping `{str_path}` due to {e_e}")
@@ -105,8 +125,13 @@ async def doc_upload(message: Message, path, del_path: bool = False,
             os.remove(str_path)
 
 
-async def vid_upload(message: Message, path, del_path: bool = False,
-                     extra: str = '', with_thumb: bool = True):
+async def vid_upload(
+    message: Message,
+    path,
+    del_path: bool = False,
+    extra: str = "",
+    with_thumb: bool = True,
+):
     str_path = str(path)
     thumb = await get_thumb(str_path) if with_thumb else None
     duration = 0
@@ -114,9 +139,12 @@ async def vid_upload(message: Message, path, del_path: bool = False,
     if metadata and metadata.has("duration"):
         duration = metadata.get("duration").seconds
     sent: Message = await message.client.send_message(
-        message.chat.id, f"`Uploading {str_path} as a video ... {extra}`")
+        message.chat.id, f"`Uploading {str_path} as a video ... {extra}`"
+    )
     start_t = datetime.now()
-    await message.client.send_chat_action(message.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+    await message.client.send_chat_action(
+        message.chat.id, enums.ChatAction.UPLOAD_VIDEO
+    )
     width = 0
     height = 0
     if thumb:
@@ -137,7 +165,7 @@ async def vid_upload(message: Message, path, del_path: bool = False,
             parse_mode=enums.ParseMode.HTML,
             disable_notification=True,
             progress=progress,
-            progress_args=(message, f"uploading {extra}", str_path)
+            progress_args=(message, f"uploading {extra}", str_path),
         )
     except ValueError as e_e:
         await sent.edit(f"Skipping `{str_path}` due to {e_e}")
@@ -152,8 +180,13 @@ async def vid_upload(message: Message, path, del_path: bool = False,
             os.remove(str_path)
 
 
-async def audio_upload(message: Message, path, del_path: bool = False,
-                       extra: str = '', with_thumb: bool = True):
+async def audio_upload(
+    message: Message,
+    path,
+    del_path: bool = False,
+    extra: str = "",
+    with_thumb: bool = True,
+):
     title = None
     artist = None
     thumb = None
@@ -181,9 +214,12 @@ async def audio_upload(message: Message, path, del_path: bool = False,
     if metadata and metadata.has("duration"):
         duration = metadata.get("duration").seconds
     sent: Message = await message.client.send_message(
-        message.chat.id, f"`Uploading {str_path} as audio ... {extra}`")
+        message.chat.id, f"`Uploading {str_path} as audio ... {extra}`"
+    )
     start_t = datetime.now()
-    await message.client.send_chat_action(message.chat.id, enums.ChatAction.UPLOAD_AUDIO)
+    await message.client.send_chat_action(
+        message.chat.id, enums.ChatAction.UPLOAD_AUDIO
+    )
     try:
         msg = await message.client.send_audio(
             chat_id=message.chat.id,
@@ -196,7 +232,7 @@ async def audio_upload(message: Message, path, del_path: bool = False,
             parse_mode=enums.ParseMode.HTML,
             disable_notification=True,
             progress=progress,
-            progress_args=(message, f"uploading {extra}", str_path)
+            progress_args=(message, f"uploading {extra}", str_path),
         )
     except ValueError as e_e:
         await sent.edit(f"Skipping `{str_path}` due to {e_e}")
@@ -213,12 +249,15 @@ async def audio_upload(message: Message, path, del_path: bool = False,
             os.remove("album_cover.jpg")
 
 
-async def photo_upload(message: Message, path, del_path: bool = False, extra: str = ''):
+async def photo_upload(message: Message, path, del_path: bool = False, extra: str = ""):
     str_path = str(path)
     sent: Message = await message.client.send_message(
-        message.chat.id, f"`Uploading {path.name} as photo ... {extra}`")
+        message.chat.id, f"`Uploading {path.name} as photo ... {extra}`"
+    )
     start_t = datetime.now()
-    await message.client.send_chat_action(message.chat.id, enums.ChatAction.UPLOAD_PHOTO)
+    await message.client.send_chat_action(
+        message.chat.id, enums.ChatAction.UPLOAD_PHOTO
+    )
     try:
         msg = await message.client.send_photo(
             chat_id=message.chat.id,
@@ -227,7 +266,7 @@ async def photo_upload(message: Message, path, del_path: bool = False, extra: st
             parse_mode=enums.ParseMode.HTML,
             disable_notification=True,
             progress=progress,
-            progress_args=(message, f"uploading {extra}", str_path)
+            progress_args=(message, f"uploading {extra}", str_path),
         )
     except ValueError as e_e:
         await sent.edit(f"Skipping `{str_path}` due to {e_e}")
@@ -241,7 +280,7 @@ async def photo_upload(message: Message, path, del_path: bool = False, extra: st
             os.remove(str_path)
 
 
-async def get_thumb(path: str = ''):
+async def get_thumb(path: str = ""):
     if os.path.exists(thumbnail.Dynamic.THUMB_PATH):
         return thumbnail.Dynamic.THUMB_PATH
     if path:
@@ -254,27 +293,30 @@ async def get_thumb(path: str = ''):
             if os.path.exists(thumb_path):
                 if type_ != ".jpg":
                     new_thumb_path = f"{file_name}.jpg"
-                    Image.open(thumb_path).convert('RGB').save(new_thumb_path, "JPEG")
+                    Image.open(thumb_path).convert("RGB").save(new_thumb_path, "JPEG")
                     os.remove(thumb_path)
                     thumb_path = new_thumb_path
                 return thumb_path
         metadata = extractMetadata(createParser(path))
         if metadata and metadata.has("duration"):
-            return await take_screen_shot(
-                path, metadata.get("duration").seconds)
+            return await take_screen_shot(path, metadata.get("duration").seconds)
     if os.path.exists(LOGO_PATH):
         return LOGO_PATH
     return None
 
 
 async def remove_thumb(thumb: str) -> None:
-    if (thumb and os.path.exists(thumb)
-            and thumb != LOGO_PATH and thumb != thumbnail.Dynamic.THUMB_PATH):
+    if (
+        thumb
+        and os.path.exists(thumb)
+        and thumb != LOGO_PATH
+        and thumb != thumbnail.Dynamic.THUMB_PATH
+    ):
         os.remove(thumb)
 
 
 async def finalize(message: Message, msg: Message, start_t):
-    if 'df' not in message.flags:
+    if "df" not in message.flags:
         await CHANNEL.fwd_msg(msg)
     await message.client.send_chat_action(message.chat.id, enums.ChatAction.CANCEL)
     if message.process_is_canceled:

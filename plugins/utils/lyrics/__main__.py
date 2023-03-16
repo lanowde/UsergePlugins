@@ -17,11 +17,15 @@ from googlesearch import search
 from userge import userge, Message, pool
 
 
-@userge.on_cmd("glyrics", about={
-    'header': "Genius Lyrics",
-    'description': "Scrape Song Lyrics from Genius.com",
-    'usage': "{tr}glyrics [Song Name]",
-    'examples': "{tr}glyrics Swalla Nicki Minaj"})
+@userge.on_cmd(
+    "glyrics",
+    about={
+        "header": "Genius Lyrics",
+        "description": "Scrape Song Lyrics from Genius.com",
+        "usage": "{tr}glyrics [Song Name]",
+        "examples": "{tr}glyrics Swalla Nicki Minaj",
+    },
+)
 async def glyrics(message: Message):
     song = message.input_str
     if not song:
@@ -32,19 +36,19 @@ async def glyrics(message: Message):
     gen_surl = list(search(to_search, num=1, stop=1))[0]
     async with ClientSession() as ses, ses.get(gen_surl) as res:
         gen_page = await res.text()
-    scp = BeautifulSoup(gen_page, 'html.parser')
+    scp = BeautifulSoup(gen_page, "html.parser")
     lyrics = await get_lyrics(scp)
     if not lyrics:
         await message.edit(f"No Results Found for: `{song}`")
         return
     lyrics = os.linesep.join(lyrics.splitlines())
-    title = scp.find('title').get_text().split("|")
+    title = scp.find("title").get_text().split("|")
     writers = await get_writers(scp) or "UNKNOWN"
-    lyr_format = ''
-    lyr_format += '**' + title[0] + '**\n\n'
-    lyr_format += '__' + lyrics + '__'
-    lyr_format += "\n\n**Written By: **" + '__' + writers + '__'
-    lyr_format += "\n**Source: **" + '`' + title[1] + '`'
+    lyr_format = ""
+    lyr_format += "**" + title[0] + "**\n\n"
+    lyr_format += "__" + lyrics + "__"
+    lyr_format += "\n\n**Written By: **" + "__" + writers + "__"
+    lyr_format += "\n**Source: **" + "`" + title[1] + "`"
 
     if lyr_format:
         await message.edit(lyr_format)

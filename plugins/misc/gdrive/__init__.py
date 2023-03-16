@@ -13,7 +13,7 @@ import os
 
 from userge.utils import secured_env
 
-logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
+logging.getLogger("googleapiclient.discovery").setLevel(logging.WARNING)
 
 G_DRIVE_CLIENT_ID = secured_env("G_DRIVE_CLIENT_ID")
 G_DRIVE_CLIENT_SECRET = secured_env("G_DRIVE_CLIENT_SECRET")

@@ -27,18 +27,23 @@ CHANNEL = userge.getCLogger(__name__)
 @userge.on_start
 async def _init() -> None:
     global IS_ENABLED  # pylint: disable=global-statement
-    data = await USER_DATA.find_one({'_id': 'AUTO_FASTLY'})
+    data = await USER_DATA.find_one({"_id": "AUTO_FASTLY"})
     if data:
-        IS_ENABLED = data['on']
+        IS_ENABLED = data["on"]
 
 
-@userge.on_cmd("autofastly", about={
-    'header': "Auto Fastly Response",
-    'description': "enable or disable auto fastly response",
-    'usage': "{tr}autofastly"},
-    allow_channels=False, allow_via_bot=False)
+@userge.on_cmd(
+    "autofastly",
+    about={
+        "header": "Auto Fastly Response",
+        "description": "enable or disable auto fastly response",
+        "usage": "{tr}autofastly",
+    },
+    allow_channels=False,
+    allow_via_bot=False,
+)
 async def autofastly(msg: Message):
-    """ Auto Fastly Response """
+    """Auto Fastly Response"""
     global IS_ENABLED  # pylint: disable=global-statement
     if ocr.OCR_SPACE_API_KEY is None:
         await msg.edit(
@@ -46,23 +51,33 @@ async def autofastly(msg: Message):
             "<a href='https://eepurl.com/bOLOcf'>HERE</a> "
             "<code>& add it to Heroku config vars</code> (<code>OCR_SPACE_API_KEY</code>)",
             disable_web_page_preview=True,
-            parse_mode=enums.ParseMode.HTML, del_in=0)
+            parse_mode=enums.ParseMode.HTML,
+            del_in=0,
+        )
         return
 
     IS_ENABLED = not IS_ENABLED
-    await USER_DATA.update_one({'_id': 'AUTO_FASTLY'},
-                               {"$set": {'on': IS_ENABLED}}, upsert=True)
+    await USER_DATA.update_one(
+        {"_id": "AUTO_FASTLY"}, {"$set": {"on": IS_ENABLED}}, upsert=True
+    )
     await msg.edit(
         "Auto Fastly Response has been **{}** Successfully...".format(
             "Enabled" if IS_ENABLED else "Disabled"
         ),
-        log=True, del_in=5
+        log=True,
+        del_in=5,
     )
 
 
-@userge.on_filters(IS_ENABLED_FILTER & filters.group & filters.photo & filters.incoming
-                   & filters.user([1806208310, 1983714367, 1877720720, 5053950120]),  # Bot IDs
-                   group=-1, allow_via_bot=False)
+@userge.on_filters(
+    IS_ENABLED_FILTER
+    & filters.group
+    & filters.photo
+    & filters.incoming
+    & filters.user([1806208310, 1983714367, 1877720720, 5053950120]),  # Bot IDs
+    group=-1,
+    allow_via_bot=False,
+)
 async def fastly_handler(msg: Message):
     img = await msg.download(config.Dynamic.DOWN_PATH)
     parse = await ocr.ocr_space_file(img)
@@ -71,7 +86,9 @@ async def fastly_handler(msg: Message):
         text = text.split("By@")[0].replace("\n", "").replace("\r", "")
         if text:
             await msg.reply_text(text.capitalize())
-            await CHANNEL.log(f'Auto Fastly Responded in {msg.chat.title} [{msg.chat.id}]')
+            await CHANNEL.log(
+                f"Auto Fastly Responded in {msg.chat.title} [{msg.chat.id}]"
+            )
         os.remove(img)
     except Exception as e_x:  # pylint: disable=broad-except
         await CHANNEL.log(str(e_x))

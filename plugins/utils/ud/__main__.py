@@ -17,7 +17,7 @@ from pyrogram import filters
 from pyrogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
-    InputTextMessageContent
+    InputTextMessageContent,
 )
 from pyrogram import enums
 
@@ -25,11 +25,15 @@ from userge import userge, Message, config
 from ..ud import URBAN_API_URL
 
 
-@userge.on_cmd("ud", about={
-    'header': "Searches Urban Dictionary for the query",
-    'flags': {'-l': "limit : defaults to 1"},
-    'usage': "{tr}ud [flag] [query]",
-    'examples': ["{tr}ud userge", "{tr}ud -l3 userge"]})
+@userge.on_cmd(
+    "ud",
+    about={
+        "header": "Searches Urban Dictionary for the query",
+        "flags": {"-l": "limit : defaults to 1"},
+        "usage": "{tr}ud [flag] [query]",
+        "examples": ["{tr}ud userge", "{tr}ud -l3 userge"],
+    },
+)
 async def urban_dict(message: Message):
     await message.edit("Processing...")
     query = message.filtered_input_str
@@ -44,8 +48,8 @@ async def urban_dict(message: Message):
         await message.edit(f"Sorry, couldn't find any results for: `{query}`", del_in=5)
         return
 
-    output = ''
-    limit = int(message.flags.get('-l', 1))
+    output = ""
+    limit = int(message.flags.get("-l", 1))
     for i, mean_ in enumerate(mean, start=1):
         output += f"{i}. {mean_.input_message_content.message_text}\n\n"
         if limit <= i:
@@ -56,19 +60,15 @@ async def urban_dict(message: Message):
         return
 
     output = f"<b>Query:</b> <code>{query}</code>\n<b>Limit:</b> <code>{limit}</code>\n\n{output}"
-    await message.edit_or_send_as_file(text=output, caption=query, parse_mode=enums.ParseMode.HTML)
+    await message.edit_or_send_as_file(
+        text=output, caption=query, parse_mode=enums.ParseMode.HTML
+    )
 
 
 async def wpraip(query: str) -> List[InlineQueryResultArticle]:
     oorse = []
     async with aiohttp.ClientSession() as requests:
-        two = await (
-            await requests.get(
-                URBAN_API_URL.format(
-                    Q=quote(query)
-                )
-            )
-        ).json()
+        two = await (await requests.get(URBAN_API_URL.format(Q=quote(query)))).json()
         for term in two.get("list", []):
             message_text = (
                 f"ℹ️ Definition of <b>{term.get('word')}</b>\n"
@@ -83,10 +83,10 @@ async def wpraip(query: str) -> List[InlineQueryResultArticle]:
                     input_message_content=InputTextMessageContent(
                         message_text=message_text,
                         parse_mode=enums.ParseMode.HTML,
-                        disable_web_page_preview=False
+                        disable_web_page_preview=False,
                     ),
                     url=term.get("permalink"),
-                    description=term.get("definition", " ")
+                    description=term.get("definition", " "),
                 )
             )
     return oorse
@@ -103,9 +103,9 @@ if userge.has_bot:
                 and inline_query.from_user.id in config.OWNER_ID
             ),
             # https://t.me/UserGeSpam/359404
-            name="UdInlineFilter"
+            name="UdInlineFilter",
         ),
-        group=-2
+        group=-2,
     )
     async def inline_fn(_, inline_query: InlineQuery):
         query = inline_query.query.split("ud ")[1].strip()
@@ -116,6 +116,7 @@ if userge.has_bot:
             riqa = []
         if not riqa:
             switch_pm_text = f"Sorry, couldn't find any results for: {query}"
-        await inline_query.answer(results=riqa[:49], switch_pm_text=switch_pm_text,
-                                  switch_pm_parameter="ud")
+        await inline_query.answer(
+            results=riqa[:49], switch_pm_text=switch_pm_text, switch_pm_parameter="ud"
+        )
         inline_query.stop_propagation()

@@ -13,9 +13,13 @@
 from userge import userge, Message
 
 
-@userge.on_cmd("attach", about={
-    'header': "Attach any link's preview in a message",
-    'usage': "{tr}attach [link] [reply to a message]"})
+@userge.on_cmd(
+    "attach",
+    about={
+        "header": "Attach any link's preview in a message",
+        "usage": "{tr}attach [link] [reply to a message]",
+    },
+)
 async def attach(update: Message):
     """Attach links in message"""
     link = update.text.split()[1]

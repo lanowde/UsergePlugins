@@ -16,7 +16,7 @@ from userge.utils import humanbytes
 CHANNEL = userge.getCLogger(__name__)
 
 
-@userge.on_cmd("speedtest", about={'header': "test your server speed"})
+@userge.on_cmd("speedtest", about={"header": "test your server speed"})
 async def speedtst(message: Message):
     await message.edit("`Running speed test . . .`")
     try:
@@ -53,10 +53,10 @@ Sent: `{humanbytes(result['bytes_sent'])}`
 Received: `{humanbytes(result['bytes_received'])}`
 Download: `{humanbytes(result['download'] / 8)}/s`
 Upload: `{humanbytes(result['upload'] / 8)}/s`**"""
-    if result['share']:
-        msg = await message.client.send_photo(chat_id=message.chat.id,
-                                              photo=result['share'],
-                                              caption=output)
+    if result["share"]:
+        msg = await message.client.send_photo(
+            chat_id=message.chat.id, photo=result["share"], caption=output
+        )
     else:
         msg = await message.client.send_message(chat_id=message.chat.id, text=output)
     await CHANNEL.fwd_msg(msg)

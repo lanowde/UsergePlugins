@@ -21,15 +21,19 @@ LOGGER = userge.getLogger(__name__)
 CHANNEL = userge.getCLogger(__name__)
 
 
-@userge.on_cmd("rename", about={
-    'header': "Rename telegram files",
-    'flags': {
-        '-d': "upload as document",
-        '-wt': "without thumb"},
-    'usage': "{tr}rename [flags] [new_name_with_extension] : reply to telegram media",
-    'examples': "{tr}rename -d test.mp4"}, del_pre=True, check_downpath=True)
+@userge.on_cmd(
+    "rename",
+    about={
+        "header": "Rename telegram files",
+        "flags": {"-d": "upload as document", "-wt": "without thumb"},
+        "usage": "{tr}rename [flags] [new_name_with_extension] : reply to telegram media",
+        "examples": "{tr}rename -d test.mp4",
+    },
+    del_pre=True,
+    check_downpath=True,
+)
 async def rename_(message: Message):
-    """ rename telegram files """
+    """rename telegram files"""
     if not message.filtered_input_str:
         await message.err("new name not found!")
         return
@@ -40,32 +44,46 @@ async def rename_(message: Message):
         await message.err("reply to media to rename it")
 
 
-@userge.on_cmd("convert", about={
-    'header': "Convert telegram files",
-    'usage': "reply {tr}convert to any media"}, del_pre=True, check_downpath=True)
+@userge.on_cmd(
+    "convert",
+    about={
+        "header": "Convert telegram files",
+        "usage": "reply {tr}convert to any media",
+    },
+    del_pre=True,
+    check_downpath=True,
+)
 async def convert_(message: Message):
-    """ convert telegram files """
+    """convert telegram files"""
     await message.edit("`Trying to Convert ...`")
     if message.reply_to_message and message.reply_to_message.media:
-        message.text = '' if message.reply_to_message.document else ". -d"
+        message.text = "" if message.reply_to_message.document else ". -d"
         await _handle_message(message)
     else:
         await message.err("reply to media to convert it")
 
 
-@userge.on_cmd("upload", about={
-    'header': "Upload files to telegram",
-    'flags': {
-        '-d': "upload as document",
-        '-wt': "without thumb",
-        '-r': "remove file after upload",
-        '-df': "don't forward to log channel"},
-    'usage': "{tr}upload [flags] [file or folder path | link]",
-    'examples': [
-        "{tr}upload -d https://speed.hetzner.de/100MB.bin | test.bin",
-        "{tr}upload downloads/test.mp4"]}, del_pre=True, check_downpath=True)
+@userge.on_cmd(
+    "upload",
+    about={
+        "header": "Upload files to telegram",
+        "flags": {
+            "-d": "upload as document",
+            "-wt": "without thumb",
+            "-r": "remove file after upload",
+            "-df": "don't forward to log channel",
+        },
+        "usage": "{tr}upload [flags] [file or folder path | link]",
+        "examples": [
+            "{tr}upload -d https://speed.hetzner.de/100MB.bin | test.bin",
+            "{tr}upload downloads/test.mp4",
+        ],
+    },
+    del_pre=True,
+    check_downpath=True,
+)
 async def upload_to_tg(message: Message):
-    """ upload to telegram """
+    """upload to telegram"""
     path_ = message.filtered_input_str
     if not path_:
         await message.err("Input not foud!")

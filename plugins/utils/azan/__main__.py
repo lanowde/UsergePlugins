@@ -33,14 +33,18 @@ async def azan(msg: Message):
     if not city:
         return await msg.err("Please input Country, or set datetime env")
     async with aiohttp.ClientSession() as ses:
-        url = f"https://muslimsalat.com/{city}.json?key=bd099c5825cbedb9aa934e255a81a5fc"
+        url = (
+            f"https://muslimsalat.com/{city}.json?key=bd099c5825cbedb9aa934e255a81a5fc"
+        )
         async with ses.get(url) as resp:
             if resp.status != 200:
                 return await msg.err("Unable to process your request")
             res = await resp.json()
-        if res['status_code'] == 0:
-            return await msg.err(dumps(res['status_error']))
-        timefor = f"__{res['query']}, {res['country']}, {res['items'][0]['date_for']}.__\n"
+        if res["status_code"] == 0:
+            return await msg.err(dumps(res["status_error"]))
+        timefor = (
+            f"__{res['query']}, {res['country']}, {res['items'][0]['date_for']}.__\n"
+        )
         out_str = (
             "**Islamic prayer times**"
             f"\n{timefor}"

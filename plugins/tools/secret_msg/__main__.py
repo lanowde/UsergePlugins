@@ -9,8 +9,13 @@
 from uuid import uuid4
 
 from pyrogram.types import (
-    CallbackQuery, InlineQuery, InlineKeyboardButton,
-    InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup)
+    CallbackQuery,
+    InlineQuery,
+    InlineKeyboardButton,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardMarkup,
+)
 from pyrogram.types import Message as PyroMessage
 from pyrogram import enums
 
@@ -18,7 +23,10 @@ from userge import userge, filters, config
 
 PRVT_MSGS = {}
 FILTER = filters.create(
-    lambda _, __, q: '-' in q.query and q.from_user and q.from_user.id in config.OWNER_ID)
+    lambda _, __, q: "-" in q.query
+    and q.from_user
+    and q.from_user.id in config.OWNER_ID
+)
 MEDIA_FID_S = {}
 DEEP_LINK_FLITER = filters.private & filters.create(
     lambda _, __, msg: msg.text and msg.text.startswith("/start prvtmsg")
@@ -46,18 +54,22 @@ async def recv_s_m_o(_, msg: PyroMessage):
     media_ifdd = getattr(replied, media_type.value)
     if media_type:
         rc = replied.caption and replied.caption.html
-        MEDIA_FID_S[str(msg.id)] = {"file_id": media_ifdd.file_id,
-                                    "caption": rc or ""}
+        MEDIA_FID_S[str(msg.id)] = {"file_id": media_ifdd.file_id, "caption": rc or ""}
     else:
         rc = replied.text and replied.text.html
-        MEDIA_FID_S[str(msg.id)] = {"file_id": "0",
-                                    "caption": rc or ""}
+        MEDIA_FID_S[str(msg.id)] = {"file_id": "0", "caption": rc or ""}
     await msg.reply(
         "Done, Now send this message to someone.",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
-            text="click here",
-            switch_inline_query=f"@target_username - {msg.id}:"
-        )]])
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="click here",
+                        switch_inline_query=f"@target_username - {msg.id}:",
+                    )
+                ]
+            ]
+        ),
     )
 
 
@@ -75,15 +87,10 @@ async def bot_prvtmsg_start_dl(_, message: PyroMessage):
     if message.from_user.id == user_id or message.from_user.id in config.OWNER_ID:
         if msg["file_id"] != "0":
             await message.reply_cached_media(
-                msg["file_id"],
-                caption=msg["caption"],
-                parse_mode=enums.ParseMode.HTML
+                msg["file_id"], caption=msg["caption"], parse_mode=enums.ParseMode.HTML
             )
         else:
-            await message.reply_text(
-                msg["caption"],
-                parse_mode=enums.ParseMode.HTML
-            )
+            await message.reply_text(msg["caption"], parse_mode=enums.ParseMode.HTML)
     else:
         await message.reply(f"only {flname} can see this Private Msg!")
     message.stop_propagation()
@@ -107,17 +114,16 @@ async def prvt_msg(_, c_q: CallbackQuery):
         else:
             await c_q.answer(url=f"https://t.me/{bot_username}?start=prvtmsg{msg_id}")
     else:
-        await c_q.answer(
-            f"only {flname} can see this Private Msg!", show_alert=True)
+        await c_q.answer(f"only {flname} can see this Private Msg!", show_alert=True)
 
 
 @userge.bot.on_inline_query(FILTER)
 async def inline_answer(_, inline_query: InlineQuery):
-    data = inline_query.query.split('-', maxsplit=1)
+    data = inline_query.query.split("-", maxsplit=1)
     _id = data[0].strip()
     msg = data[1].strip()
 
-    if not (msg and msg.endswith(':')):
+    if not (msg and msg.endswith(":")):
         inline_query.stop_propagation()
 
     try:
@@ -128,12 +134,17 @@ async def inline_answer(_, inline_query: InlineQuery):
 
     c_m_e = MEDIA_FID_S.get(msg[:-1])
     if not c_m_e:
-        PRVT_MSGS[inline_query.id] = (user.id, user.first_name, msg.strip(': '))
+        PRVT_MSGS[inline_query.id] = (user.id, user.first_name, msg.strip(": "))
     else:
         PRVT_MSGS[inline_query.id] = (user.id, user.first_name, c_m_e)
 
-    prvte_msg = [[InlineKeyboardButton(
-        "Show Message 🔐", callback_data=f"prvtmsg({inline_query.id})")]]
+    prvte_msg = [
+        [
+            InlineKeyboardButton(
+                "Show Message 🔐", callback_data=f"prvtmsg({inline_query.id})"
+            )
+        ]
+    ]
 
     msg_c = f"🔒 A **private message** to {'@' + user.username}, "
     msg_c += "Only he/she can open it."
@@ -145,7 +156,7 @@ async def inline_answer(_, inline_query: InlineQuery):
             input_message_content=InputTextMessageContent(msg_c),
             description="Only he/she can open it",
             thumb_url="https://te.legra.ph/file/16133ab3297b3f73c8da5.png",
-            reply_markup=InlineKeyboardMarkup(prvte_msg)
+            reply_markup=InlineKeyboardMarkup(prvte_msg),
         )
     ]
 

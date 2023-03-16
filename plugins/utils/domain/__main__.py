@@ -24,7 +24,7 @@ from userge import userge, Message
             "-a": "List all groups and channels administered by you.",
         },
     },
-    allow_via_bot=False
+    allow_via_bot=False,
 )
 async def creator(m: Message):
 
@@ -47,7 +47,8 @@ async def creator(m: Message):
         if d.chat.type in [
             enums.ChatType.GROUP,
             enums.ChatType.SUPERGROUP,
-                enums.ChatType.CHANNEL]:
+            enums.ChatType.CHANNEL,
+        ]:
             try:
                 if (
                     await userge.get_chat_member(d.chat.id, m.client.id)
@@ -86,9 +87,7 @@ async def creator(m: Message):
     )
 
 
-@userge.on_cmd("stats",
-               about="Shows user account stats!",
-               allow_via_bot=False)
+@userge.on_cmd("stats", about="Shows user account stats!", allow_via_bot=False)
 async def stats(message: Message):
     await message.edit("Processing ...This may take a bit time")
     u = 0
@@ -108,16 +107,19 @@ async def stats(message: Message):
             sg += 1
             user_s = await dialog.chat.get_member(int(message.client.id))
             if user_s.status in (
-                    enums.ChatMemberStatus.OWNER,
-                    enums.ChatMemberStatus.ADMINISTRATOR):
+                enums.ChatMemberStatus.OWNER,
+                enums.ChatMemberStatus.ADMINISTRATOR,
+            ):
                 a_chat += 1
         elif dialog.chat.type == enums.ChatType.CHANNEL:
             c += 1
-    await message.edit(f'''
+    await message.edit(
+        f"""
 You have `{u}` Private Messages.
 You are in `{g}` Groups.
 You are in `{sg}` Super Groups.
 You Are in `{c}` Channels.
 You Are Admin in `{a_chat}` Chats.
 Bots Started = `{b}`
-''')
+"""
+    )

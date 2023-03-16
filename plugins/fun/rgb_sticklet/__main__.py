@@ -29,16 +29,20 @@ async def init():
         FONTS_FILE_CHANNEL = data["name"]
 
 
-@userge.on_cmd("plet", about={
-    'header': "Get a Random RGB Sticker",
-    'description': "Generates A RGB Sticker with provided text",
-    'flags': {'-c': "change fonts channel"},
-    'usage': "{tr}plet [text | reply]",
-    'examples': "{tr}plet @theUserge"})
+@userge.on_cmd(
+    "plet",
+    about={
+        "header": "Get a Random RGB Sticker",
+        "description": "Generates A RGB Sticker with provided text",
+        "flags": {"-c": "change fonts channel"},
+        "usage": "{tr}plet [text | reply]",
+        "examples": "{tr}plet @theUserge",
+    },
+)
 async def sticklet(message: Message):
     global FONTS_FILE_CHANNEL  # pylint: disable=global-statement
-    if message.flags and '-c' in message.flags and not message.client.is_bot:
-        u = message.flags.get('-c')
+    if message.flags and "-c" in message.flags and not message.client.is_bot:
+        u = message.flags.get("-c")
         if not u:
             return await message.err("Channel Username not found!")
         try:
@@ -47,9 +51,9 @@ async def sticklet(message: Message):
             await message.err(str(err))
         else:
             FONTS_FILE_CHANNEL = u
-            await PLET_FONT.update_one({"id": "PLET_FONT_CHANNEL"},
-                                       {"$set": {"name": u}},
-                                       upsert=True)
+            await PLET_FONT.update_one(
+                {"id": "PLET_FONT_CHANNEL"}, {"$set": {"name": u}}, upsert=True
+            )
             await message.edit("`Fonts channel saved successfully...`")
         return
     R = random.randint(0, 256)
@@ -70,7 +74,7 @@ async def sticklet(message: Message):
     # https://docs.python.org/3/library/textwrap.html#textwrap.wrap
 
     sticktext = textwrap.wrap(sticktext, width=10)
-    sticktext = '\n'.join(sticktext)
+    sticktext = "\n".join(sticktext)
 
     image = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(image)
@@ -88,20 +92,15 @@ async def sticklet(message: Message):
 
     width, height = draw.multiline_textsize(sticktext, font=font)
     draw.multiline_text(
-        ((512 - width) / 2,
-         (512 - height) / 2),
-        sticktext,
-        font=font,
-        fill=(
-            R,
-            G,
-            B))
+        ((512 - width) / 2, (512 - height) / 2), sticktext, font=font, fill=(R, G, B)
+    )
 
     image_name = "rgb_sticklet.webp"
     image.save(image_name, "WebP")
 
     await message.client.send_sticker(
-        chat_id=message.chat.id, sticker=image_name, reply_to_message_id=reply_to)
+        chat_id=message.chat.id, sticker=image_name, reply_to_message_id=reply_to
+    )
 
     # cleanup
     try:
@@ -114,10 +113,12 @@ async def sticklet(message: Message):
 async def get_font_file(message: Message):
     if message.client.is_bot:
         font_file_message_s = await message.client.get_messages(
-            FONTS_FILE_CHANNEL, DEFAULT_FONTS)
+            FONTS_FILE_CHANNEL, DEFAULT_FONTS
+        )
         font_file_message = random.choice(font_file_message_s)
     else:
-        font_file_message_s = [msg async for msg in message.client.get_chat_history(
-            FONTS_FILE_CHANNEL)]
+        font_file_message_s = [
+            msg async for msg in message.client.get_chat_history(FONTS_FILE_CHANNEL)
+        ]
         font_file_message = random.choice(font_file_message_s)
     return await font_file_message.download()

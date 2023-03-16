@@ -16,14 +16,17 @@ from userge import userge, Message
 from userge.utils.exceptions import StopConversation
 
 
-@userge.on_cmd("sg", about={
-    'header': "Sangmata gives you user's last updated names and usernames.",
-    'flags': {
-        '-u': "To get Username history of a User"},
-    'usage': "{tr}sg [Reply to user]\n"
-             "{tr}sg -u [Reply to user]"}, allow_via_bot=False)
+@userge.on_cmd(
+    "sg",
+    about={
+        "header": "Sangmata gives you user's last updated names and usernames.",
+        "flags": {"-u": "To get Username history of a User"},
+        "usage": "{tr}sg [Reply to user]\n" "{tr}sg -u [Reply to user]",
+    },
+    allow_via_bot=False,
+)
 async def sangmata_(message: Message):
-    """ Get User's Updated previous Names and Usernames """
+    """Get User's Updated previous Names and Usernames"""
     replied = message.reply_to_message
     if not replied:
         await message.err("```\nReply to get Name and Username History...```", del_in=5)
@@ -48,9 +51,11 @@ async def sangmata_(message: Message):
     name = "Name History"
     username = "Username History"
     for msg in msgs:
-        if '-u' in message.flags:
+        if "-u" in message.flags:
             if msg.text.startswith("No records found"):
-                await message.edit("```\nUser never changed his Username...```", del_in=5)
+                await message.edit(
+                    "```\nUser never changed his Username...```", del_in=5
+                )
                 return
             if msg.text.startswith(username):
                 await message.edit(f"`{msg.text}`")

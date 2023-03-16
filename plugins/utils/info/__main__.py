@@ -29,19 +29,28 @@ GMUTE_USER_BASE = get_collection("GMUTE_USER")
 LOG = userge.getLogger(__name__)
 
 
-@userge.on_cmd("info", about={
-    'header': "To check User's info",
-    'usage': "{tr}info [for own info]\n"
-             "{tr}info [Username | User Id]\n"
-             "{tr}info [reply to User]"}, allow_via_bot=False)
+@userge.on_cmd(
+    "info",
+    about={
+        "header": "To check User's info",
+        "usage": "{tr}info [for own info]\n"
+        "{tr}info [Username | User Id]\n"
+        "{tr}info [reply to User]",
+    },
+    allow_via_bot=False,
+)
 async def _info(msg: Message):
-    """ To check User's info """
+    """To check User's info"""
     await msg.edit("`Checking...`")
     user_id = msg.input_str
     replied = msg.reply_to_message
     if not user_id:
         if replied:
-            user_id = replied.forward_from.id if replied.forward_from else replied.from_user.id
+            user_id = (
+                replied.forward_from.id
+                if replied.forward_from
+                else replied.from_user.id
+            )
         else:
             user_id = msg.from_user.id
     try:
@@ -50,11 +59,11 @@ async def _info(msg: Message):
         await msg.edit("I don't know that User...")
         return
     await msg.edit("`Getting Info...`")
-    l_name = user.last_name or ''
+    l_name = user.last_name or ""
     if user.username:
-        username = '@' + user.username
+        username = "@" + user.username
     else:
-        username = '`None`'
+        username = "`None`"
     common_chats = await msg.client.get_common_chats(user.id)
     user_info = f"""
 **About [{user.first_name} {l_name}](tg://user?id={user.id})**:
@@ -82,30 +91,38 @@ async def _info(msg: Message):
                 user_info += "\n**SpamWatch Banned** : `False`"
             else:
                 user_info += "\n**SpamWatch Banned** : `True`"
-                user_info += f"\n    **● Reason** : `{reduce_spam(status.reason or None)}`"
-                user_info += f"\n    **● Message** : `{reduce_spam(status.message or None)}`"
+                user_info += (
+                    f"\n    **● Reason** : `{reduce_spam(status.reason or None)}`"
+                )
+                user_info += (
+                    f"\n    **● Message** : `{reduce_spam(status.message or None)}`"
+                )
 
         async with aiohttp.ClientSession() as ses, ses.get(
-            f'https://api.cas.chat/check?user_id={user.id}'
+            f"https://api.cas.chat/check?user_id={user.id}"
         ) as c_s:
             cas_banned = json.loads(await c_s.text())
-        user_gbanned = await GBAN_USER_BASE.find_one({'user_id': user.id})
-        user_gmuted = await GMUTE_USER_BASE.find_one({'user_id': user.id})
+        user_gbanned = await GBAN_USER_BASE.find_one({"user_id": user.id})
+        user_gmuted = await GMUTE_USER_BASE.find_one({"user_id": user.id})
 
-        if cas_banned['ok']:
-            reason = cas_banned['result']['messages'][0] or None
+        if cas_banned["ok"]:
+            reason = cas_banned["result"]["messages"][0] or None
             user_info += "\n**CAS AntiSpam Banned** : `True`"
             user_info += f"\n    **● Reason** : `{reduce_spam(reason)}`"
         else:
             user_info += "\n**CAS AntiSpam Banned** : `False`"
         if user_gmuted:
             user_info += "\n**User GMuted** : `True`"
-            user_info += f"\n    **● Reason** : `{reduce_spam(user_gmuted['reason'] or None)}`"
+            user_info += (
+                f"\n    **● Reason** : `{reduce_spam(user_gmuted['reason'] or None)}`"
+            )
         else:
             user_info += "\n**User GMuted** : `False`"
         if user_gbanned:
             user_info += "\n**User GBanned** : `True`"
-            user_info += f"\n    **● Reason** : `{reduce_spam(user_gbanned['reason'] or None)}`"
+            user_info += (
+                f"\n    **● Reason** : `{reduce_spam(user_gbanned['reason'] or None)}`"
+            )
         else:
             user_info += "\n**User Gbanned** : `False`"
         await msg.edit_or_send_as_file(text=user_info, disable_web_page_preview=True)

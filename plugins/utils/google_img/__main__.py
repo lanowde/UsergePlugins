@@ -39,12 +39,16 @@ option and for "Sites to search" option select "Search the entire
  web but emphasize included sites"."""
 
 
-@userge.on_cmd("gimg", about={
-    'header': "Google Image Search",
-    'description': "Search and Download Images from"
-                   " Google and upload to Telegram",
-    'usage': "{tr}gimg [Query]",
-    'examples': "{tr}gimg Dogs"})
+@userge.on_cmd(
+    "gimg",
+    about={
+        "header": "Google Image Search",
+        "description": "Search and Download Images from"
+        " Google and upload to Telegram",
+        "usage": "{tr}gimg [Query]",
+        "examples": "{tr}gimg Dogs",
+    },
+)
 async def google_img(message: Message):
     if (gimg.GCS_API_KEY and gimg.GCS_IMAGE_E_ID) is None:
         await message.edit(REQ_ERR, disable_web_page_preview=True)
@@ -54,12 +58,14 @@ async def google_img(message: Message):
 
     fetcher = GIS(gimg.GCS_API_KEY, gimg.GCS_IMAGE_E_ID)
     query = message.input_str
-    search = {'q': query,
-              'num': 9,
-              'safe': "off",
-              'fileType': "jpg",
-              'imgType': "photo",
-              'imgSize': "HUGE"}
+    search = {
+        "q": query,
+        "num": 9,
+        "safe": "off",
+        "fileType": "jpg",
+        "imgType": "photo",
+        "imgSize": "HUGE",
+    }
     await message.edit("`Processing...`")
     fetcher.search(search_params=search)
     for image in fetcher.results():
@@ -75,9 +81,9 @@ async def google_img(message: Message):
             image.thumbnail((1280, 1280), Image.ANTIALIAS)
             a_dex = image.mode.find("A")
             if a_dex != -1:
-                new_im = Image.new('RGB', image.size, (255, 255, 255))
+                new_im = Image.new("RGB", image.size, (255, 255, 255))
                 new_im.paste(image, mask=image.split()[a_dex])
-                new_im.save(imgs, 'JPEG', optimize=True)
+                new_im.save(imgs, "JPEG", optimize=True)
         ss.append(InputMediaPhoto(str(imgs)))
         if len(ss) == 9:
             break

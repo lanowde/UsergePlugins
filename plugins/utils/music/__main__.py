@@ -23,9 +23,7 @@ from ...misc.download import url_download
 
 # ARQ API
 session = ClientSession()
-arq = ARQ(
-    "https://thearq.tech", music.ARQ_KEY, session
-) if music.ARQ_KEY else None
+arq = ARQ("https://thearq.tech", music.ARQ_KEY, session) if music.ARQ_KEY else None
 
 LOGGER = userge.getLogger(__name__)
 
@@ -43,7 +41,7 @@ async def savn(message: Message):
         return await message.err(
             "Before using this command, "
             "you have to set this [Environmental var.](https://t.me/UsergePlugins/128)",
-            disable_web_page_preview=True
+            disable_web_page_preview=True,
         )
     query = message.input_str
     await message.edit(f"Searching for {query} in JioSaavn...")
@@ -89,7 +87,7 @@ async def deeza(message: Message):
         return await message.err(
             "Before using this command, "
             "you have to set this [Environmental var.](https://t.me/UsergePlugins/128)",
-            disable_web_page_preview=True
+            disable_web_page_preview=True,
         )
     query = str(message.filtered_input_str)
     await message.edit(f"Searching for {query} in Deezer...")

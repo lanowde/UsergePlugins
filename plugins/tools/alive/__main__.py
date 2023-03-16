@@ -15,8 +15,15 @@ from typing import Tuple, Optional
 
 import wget
 from pyrogram.errors import (
-    ChatSendMediaForbidden, Forbidden, SlowmodeWait, PeerIdInvalid,
-    FileIdInvalid, FileReferenceEmpty, BadRequest, ChannelInvalid, MediaEmpty
+    ChatSendMediaForbidden,
+    Forbidden,
+    SlowmodeWait,
+    PeerIdInvalid,
+    FileIdInvalid,
+    FileReferenceEmpty,
+    BadRequest,
+    ChannelInvalid,
+    MediaEmpty,
 )
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -38,20 +45,25 @@ _CHAT, _MSG_ID = None, None
 _LOGO_ID = None
 
 
-@userge.on_cmd("alive", about={
-    'header': "This command is just for fun"}, allow_channels=False)
+@userge.on_cmd(
+    "alive", about={"header": "This command is just for fun"}, allow_channels=False
+)
 async def _alive(message: Message):
     if not (_CHAT and _MSG_ID):
         try:
             _set_data()
         except Exception as set_err:
-            _LOG.exception("There was some problem while setting Media Data. "
-                           f"trying again... ERROR:: {set_err} ::")
+            _LOG.exception(
+                "There was some problem while setting Media Data. "
+                f"trying again... ERROR:: {set_err} ::"
+            )
             _set_data(True)
 
     alive_text, markup = await _get_text_and_markup(message)
     if _MSG_ID == "text_format":
-        return await message.edit(alive_text, disable_web_page_preview=True, reply_markup=markup)
+        return await message.edit(
+            alive_text, disable_web_page_preview=True, reply_markup=markup
+        )
     await message.delete()
     try:
         await _send_alive(message, alive_text, markup)
@@ -68,7 +80,9 @@ def _get_mode() -> str:
     return "User"
 
 
-async def _get_text_and_markup(message: Message) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+async def _get_text_and_markup(
+    message: Message,
+) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
     markup = None
     output = f"""
 **⏱ Uptime** : `{userge.uptime}`
@@ -77,7 +91,9 @@ async def _get_text_and_markup(message: Message) -> Tuple[str, Optional[InlineKe
 
 • **Sudo**: `{_parse_arg(sudo.Dynamic.ENABLED)}`"""
     if pmpermit is not None:
-        output += f"\n• **Pm-Guard**: `{_parse_arg(not pmpermit.Dynamic.ALLOW_ALL_PMS)}`"
+        output += (
+            f"\n• **Pm-Guard**: `{_parse_arg(not pmpermit.Dynamic.ALLOW_ALL_PMS)}`"
+        )
     if antispam is not None:
         output += f"\n• **Anti-Spam**: `{_parse_arg(antispam.Dynamic.ANTISPAM_SENTRY)}`"
     if config.HEROKU_APP:
@@ -93,13 +109,17 @@ async def _get_text_and_markup(message: Message) -> Tuple[str, Optional[InlineKe
 """
     else:
         copy_ = "https://github.com/UsergeTeam/Userge/blob/master/LICENSE"
-        markup = InlineKeyboardMarkup([
+        markup = InlineKeyboardMarkup(
             [
-                InlineKeyboardButton(text="👥 UsergeTeam", url="https://github.com/UsergeTeam"),
-                InlineKeyboardButton(text="🧪 Repo", url=alive.UPSTREAM_REPO)
-            ],
-            [InlineKeyboardButton(text="🎖 GNU GPL v3.0", url=copy_)]
-        ])
+                [
+                    InlineKeyboardButton(
+                        text="👥 UsergeTeam", url="https://github.com/UsergeTeam"
+                    ),
+                    InlineKeyboardButton(text="🧪 Repo", url=alive.UPSTREAM_REPO),
+                ],
+                [InlineKeyboardButton(text="🎖 GNU GPL v3.0", url=copy_)],
+            ]
+        )
     return output, markup
 
 
@@ -107,10 +127,12 @@ def _parse_arg(arg: bool) -> str:
     return "enabled" if arg else "disabled"
 
 
-async def _send_alive(message: Message,
-                      text: str,
-                      reply_markup: Optional[InlineKeyboardMarkup],
-                      recurs_count: int = 0) -> None:
+async def _send_alive(
+    message: Message,
+    text: str,
+    reply_markup: Optional[InlineKeyboardMarkup],
+    recurs_count: int = 0,
+) -> None:
     if not _LOGO_ID:
         await _refresh_id(message)
     should_mark = None if _IS_STICKER else reply_markup
@@ -118,10 +140,12 @@ async def _send_alive(message: Message,
         await _send_telegraph(message, text, reply_markup)
     else:
         try:
-            await message.client.send_cached_media(chat_id=message.chat.id,
-                                                   file_id=_LOGO_ID,
-                                                   caption=text,
-                                                   reply_markup=should_mark)
+            await message.client.send_cached_media(
+                chat_id=message.chat.id,
+                file_id=_LOGO_ID,
+                caption=text,
+                reply_markup=should_mark,
+            )
             if _IS_STICKER:
                 raise ChatSendMediaForbidden
         except SlowmodeWait as s_m:
@@ -134,10 +158,12 @@ async def _send_alive(message: Message,
             await _refresh_id(message)
             return await _send_alive(message, text, reply_markup, recurs_count + 1)
         except (ChatSendMediaForbidden, Forbidden):
-            await message.client.send_message(chat_id=message.chat.id,
-                                              text=text,
-                                              disable_web_page_preview=True,
-                                              reply_markup=should_mark)
+            await message.client.send_message(
+                chat_id=message.chat.id,
+                text=text,
+                disable_web_page_preview=True,
+                reply_markup=should_mark,
+            )
 
 
 async def _refresh_id(message: Message) -> None:
@@ -184,28 +210,21 @@ def _set_data(errored: bool = False) -> None:
         _MSG_ID = int(match.group(7))
 
 
-async def _send_telegraph(msg: Message, text: str, reply_markup: Optional[InlineKeyboardMarkup]):
+async def _send_telegraph(
+    msg: Message, text: str, reply_markup: Optional[InlineKeyboardMarkup]
+):
     path = os.path.join(config.Dynamic.DOWN_PATH, os.path.split(alive.ALIVE_MEDIA)[1])
     if not os.path.exists(path):
         await pool.run_in_thread(wget.download)(alive.ALIVE_MEDIA, path)
     if path.lower().endswith((".jpg", ".jpeg", ".png", ".bmp")):
         await msg.client.send_photo(
-            chat_id=msg.chat.id,
-            photo=path,
-            caption=text,
-            reply_markup=reply_markup
+            chat_id=msg.chat.id, photo=path, caption=text, reply_markup=reply_markup
         )
     elif path.lower().endswith((".mkv", ".mp4", ".webm")):
         await msg.client.send_video(
-            chat_id=msg.chat.id,
-            video=path,
-            caption=text,
-            reply_markup=reply_markup
+            chat_id=msg.chat.id, video=path, caption=text, reply_markup=reply_markup
         )
     else:
         await msg.client.send_document(
-            chat_id=msg.chat.id,
-            document=path,
-            caption=text,
-            reply_markup=reply_markup
+            chat_id=msg.chat.id, document=path, caption=text, reply_markup=reply_markup
         )

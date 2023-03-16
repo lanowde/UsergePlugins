@@ -11,16 +11,16 @@
 from userge import userge, Message
 
 
-@userge.on_cmd("type", about={
-    'header': "Simulate a typewriter",
-    'usage': "{tr}type [text]"})
+@userge.on_cmd(
+    "type", about={"header": "Simulate a typewriter", "usage": "{tr}type [text]"}
+)
 async def type_(message: Message):
     text = message.input_str
     if not text:
         await message.err("input not found")
         return
-    typing_symbol = '|'
-    old_text = ''
+    typing_symbol = "|"
+    old_text = ""
     await message.edit(typing_symbol)
     for character in text:
         if message.process_is_canceled:

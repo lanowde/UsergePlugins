@@ -14,10 +14,14 @@ from datetime import datetime
 from userge import userge, Message
 
 
-@userge.on_cmd("calendar", about={
-    'header': "Print calendar of any month of any year.",
-    'usage': "{tr}calendar\n{tr}calendar [ year | month]",
-    'examples': "{tr}calendar 2020 | 6"})
+@userge.on_cmd(
+    "calendar",
+    about={
+        "header": "Print calendar of any month of any year.",
+        "usage": "{tr}calendar\n{tr}calendar [ year | month]",
+        "examples": "{tr}calendar 2020 | 6",
+    },
+)
 async def _calendar(message: Message):
 
     if not message.input_str:
@@ -29,11 +33,11 @@ async def _calendar(message: Message):
         except Exception as e:
             await message.err(e)
         return
-    if '|' not in message.input_str:
+    if "|" not in message.input_str:
         await message.err("both year and month required!")
         return
     await message.edit("`Searching...`")
-    year, month = message.input_str.split('|', maxsplit=1)
+    year, month = message.input_str.split("|", maxsplit=1)
     try:
         input_ = calendar.month(int(year.strip()), int(month.strip()))
         await message.edit(f"```\n{input_}```")

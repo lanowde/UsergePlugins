@@ -20,7 +20,7 @@ from pyrogram.types import (
     InlineQueryResultArticle,
     InputTextMessageContent,
     InlineKeyboardButton,
-    InlineKeyboardMarkup
+    InlineKeyboardMarkup,
 )
 from pyrogram import enums
 
@@ -30,18 +30,22 @@ from .. import imdb
 THUMB_PATH = config.Dynamic.DOWN_PATH + "imdb_thumb.jpg"
 
 
-@userge.on_cmd("imdb", about={
-    'header': "Scrap Movies & Tv Shows from IMDB",
-    'description': "Get info about a Movie on IMDB.\n"
-                   "[NOTE: To use a custom poster, download "
-                   "the poster with name imdb_thumb.jpg]",
-    'usage': "{tr}imdb [Movie Name]",
-    'use inline': "@botusername imdb [Movie Name]"})
+@userge.on_cmd(
+    "imdb",
+    about={
+        "header": "Scrap Movies & Tv Shows from IMDB",
+        "description": "Get info about a Movie on IMDB.\n"
+        "[NOTE: To use a custom poster, download "
+        "the poster with name imdb_thumb.jpg]",
+        "usage": "{tr}imdb [Movie Name]",
+        "use inline": "@botusername imdb [Movie Name]",
+    },
+)
 async def _imdb(message: Message):
     if not (imdb.API_ONE_URL or imdb.API_TWO_URL):
         return await message.err(
             "First set [these two vars](https://t.me/UsergePlugins/127) before using imdb",
-            disable_web_page_preview=True
+            disable_web_page_preview=True,
         )
     try:
         movie_name = message.input_str
@@ -61,7 +65,7 @@ async def _imdb(message: Message):
             chat_id=message.chat.id,
             photo=THUMB_PATH,
             caption=description,
-            parse_mode=enums.ParseMode.HTML
+            parse_mode=enums.ParseMode.HTML,
         )
         await message.delete()
     elif image_link is not None:
@@ -69,14 +73,12 @@ async def _imdb(message: Message):
             chat_id=message.chat.id,
             photo=image_link.replace("_V1_", "_V1_UX720"),
             caption=description,
-            parse_mode=enums.ParseMode.HTML
+            parse_mode=enums.ParseMode.HTML,
         )
         await message.delete()
     else:
         await message.edit(
-            description,
-            disable_web_page_preview=True,
-            parse_mode=enums.ParseMode.HTML
+            description, disable_web_page_preview=True, parse_mode=enums.ParseMode.HTML
         )
 
 
@@ -85,12 +87,12 @@ async def get_movie_description(imdb_id, max_length):
     soup = json.loads(response.text)
 
     mov_link = f"https://www.imdb.com/title/{imdb_id}"
-    mov_name = soup.get('title')
-    image_link = soup.get('poster')
+    mov_name = soup.get("title")
+    image_link = soup.get("poster")
     genres = soup.get("genres")
     duration = soup.get("duration")
     mov_rating = soup.get("UserRating").get("rating")
-    if mov_rating.strip() == '/':
+    if mov_rating.strip() == "/":
         mov_rating = "<code>Ratings not found!</code>"
     else:
         users = soup.get("UserRating").get("numeric_description_only")
@@ -101,7 +103,7 @@ async def get_movie_description(imdb_id, max_length):
 
     mov_country, mov_language = get_countries_and_languages(soup)
     director, writer, stars = get_credits_text(soup)
-    story_line = soup.get("summary").get("plot", 'Not available')
+    story_line = soup.get("summary").get("plot", "Not available")
 
     description = f"<b>Title</b><a href='{image_link}'>🎬</a>: <code>{mov_name}</code>"
     description += f"""
@@ -121,7 +123,7 @@ async def get_movie_description(imdb_id, max_length):
     povas = await search_jw(mov_name, imdb.WATCH_COUNTRY)
     if len(description + povas) > max_length:
         inc = max_length - len(description + povas)
-        description = description[:inc - 3].strip() + "..."
+        description = description[: inc - 3].strip() + "..."
     if povas != "":
         description += f"\n\n{povas}"
     return image_link, description
@@ -132,14 +134,14 @@ def get_countries_and_languages(soup):
     countries = soup.get("CountryOfOrigin")
     if languages:
         if len(languages) > 1:
-            lg_text = ', '.join(languages)
+            lg_text = ", ".join(languages)
         else:
             lg_text = languages[0]
     else:
         lg_text = "No Languages Found!"
     if countries:
         if len(countries) > 1:
-            ct_text = ', '.join(countries)
+            ct_text = ", ".join(countries)
         else:
             ct_text = countries[0]
     else:
@@ -154,21 +156,21 @@ def get_credits_text(soup):
     actor = pg.get("Stars")
     if direc:
         if len(direc) > 1:
-            director = ', '.join([x["NAME"] for x in direc])
+            director = ", ".join([x["NAME"] for x in direc])
         else:
             director = direc[0]["NAME"]
     else:
         director = "No Director Found!"
     if writer:
         if len(writer) > 1:
-            writers = ', '.join([x["NAME"] for x in writer])
+            writers = ", ".join([x["NAME"] for x in writer])
         else:
             writers = writer[0]["NAME"]
     else:
         writers = "No Writer Found!"
     if actor:
         if len(actor) > 1:
-            actors = ', '.join([x["NAME"] for x in actor])
+            actors = ", ".join([x["NAME"] for x in actor])
         else:
             actors = actor[0]["NAME"]
     else:
@@ -205,11 +207,11 @@ if userge.has_bot:
                         [
                             InlineKeyboardButton(
                                 text="Open IMDB!",
-                                url=f"https://imdb.com/title/{imdb_id}"
+                                url=f"https://imdb.com/title/{imdb_id}",
                             )
                         ]
                     ]
-                )
+                ),
             )
         else:
             await c_q.answer("This is not for you", show_alert=True)
@@ -223,9 +225,9 @@ if userge.has_bot:
                 and inline_query.from_user.id in config.OWNER_ID
             ),
             # https://t.me/UserGeSpam/359404
-            name="ImdbInlineFilter"
+            name="ImdbInlineFilter",
         ),
-        group=-1
+        group=-1,
     )
     async def inline_fn(_, inline_query: InlineQuery):
         movie_name = inline_query.query.split("imdb ")[1].strip()
@@ -238,7 +240,7 @@ if userge.has_bot:
             description = sraeo.get("q", "")
             stars = sraeo.get("s", "")
             imdb_url = f"https://imdb.com/title/{sraeo.get('id')}"
-            year = sraeo.get("yr", "").rstrip('-')
+            year = sraeo.get("yr", "").rstrip("-")
             image_url = sraeo.get("i").get("imageUrl")
             message_text = f"<a href='{image_url}'>🎬</a>"
             message_text += f"<a href='{imdb_url}'>{title} {year}</a>"
@@ -248,7 +250,7 @@ if userge.has_bot:
                     input_message_content=InputTextMessageContent(
                         message_text=message_text,
                         parse_mode=enums.ParseMode.HTML,
-                        disable_web_page_preview=False
+                        disable_web_page_preview=False,
                     ),
                     url=imdb_url,
                     description=f" {description} | {stars}",
@@ -258,17 +260,19 @@ if userge.has_bot:
                             [
                                 InlineKeyboardButton(
                                     text="Get IMDB details",
-                                    callback_data=f"imdb({sraeo.get('id')})"
+                                    callback_data=f"imdb({sraeo.get('id')})",
                                 )
                             ]
                         ]
-                    )
+                    ),
                 )
             )
         resfo = srch_results.get("q")
-        await inline_query.answer(results=oorse,
-                                  switch_pm_text=f"Found {len(oorse)} results for {resfo}",
-                                  switch_pm_parameter="imdb")
+        await inline_query.answer(
+            results=oorse,
+            switch_pm_text=f"Found {len(oorse)} results for {resfo}",
+            switch_pm_parameter="imdb",
+        )
         inline_query.stop_propagation()
 
 
@@ -276,10 +280,7 @@ async def search_jw(movie_name: str, locale: str):
     m_t_ = ""
     if not imdb.API_THREE_URL:
         return m_t_
-    response = await _get(imdb.API_THREE_URL.format(
-        q=movie_name,
-        L=locale
-    ))
+    response = await _get(imdb.API_THREE_URL.format(q=movie_name, L=locale))
     soup = json.loads(response.text)
     items = soup["items"]
     for item in items:
@@ -299,7 +300,6 @@ async def search_jw(movie_name: str, locale: str):
 
 
 def get_provider(url):
-
     def pretty(names):
         name = names[1]
         if names[0] == "play":
@@ -307,4 +307,4 @@ def get_provider(url):
         return name.title()
 
     netloc = urlparse(url).netloc
-    return pretty(netloc.split('.'))
+    return pretty(netloc.split("."))

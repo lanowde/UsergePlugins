@@ -13,7 +13,7 @@ from pyrogram.errors import MessageDeleteForbidden
 from userge import userge, Message
 
 
-@userge.on_cmd("del", about={'header': "delete replied message"})
+@userge.on_cmd("del", about={"header": "delete replied message"})
 async def del_msg(message: Message):
     if userge.dual_mode:
         u_msg_ids = []

@@ -19,7 +19,10 @@ from typing import Optional, List, Dict
 import wget
 from pyrogram.errors import UserIsBlocked, FloodWait
 from pyrogram.types import (
-    Message as PyroMessage, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+    Message as PyroMessage,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    CallbackQuery,
 )
 
 from userge import userge, Message, config, filters, get_collection, pool
@@ -54,18 +57,18 @@ bannedFilter = filters.create(lambda _, __, ___: ___.chat.id in _BANNED_USERS)
 async def _init():
     global START_TEXT, BOT_PM  # pylint: disable=global-statement
     async for a in HAVE_BLOCKED.find():
-        _HAVE_BLOCKED.append(a['user_id'])
+        _HAVE_BLOCKED.append(a["user_id"])
     async for b in BANNED_USERS.find():
-        _BANNED_USERS.append(b['user_id'])
+        _BANNED_USERS.append(b["user_id"])
     async for c in USERS.find():
         _USERS.append(c["user_id"])
     async for d in U_ID_F_M_ID.find():
-        _U_ID_F_M_ID[d['msg_id']] = d['user_id']
+        _U_ID_F_M_ID[d["msg_id"]] = d["user_id"]
     async for e in STATS.find():
         if e.get("_id") == "INCOMING_STATS":
-            _STATS['incoming'] = e.get("data")
+            _STATS["incoming"] = e.get("data")
         if e.get("_id") == "OUTGOING_STATS":
-            _STATS['outgoing'] = e.get("data")
+            _STATS["outgoing"] = e.get("data")
     start_text = await SAVED_SETTINGS.find_one({"_id": "BOT_START_TEXT"})
     if start_text:
         START_TEXT = start_text.get("data")
@@ -74,25 +77,30 @@ async def _init():
         BOT_PM = bool(found.get("data"))
 
 
-@userge.on_cmd("botpm", about={
-    'header': "Bot Pm handlers like Livegram Bot.",
-    'description': "You can use this command to enable/disable Bot Pm.\n"
-                   "You can see all the settings of your bot after enabling "
-                   "bot pm and hit /start in your Bot DM.\n"
-                   "Note: You have to us Bot mode or Dual mode if you want to enable Bot Pm.",
-    'usage': "{tr}botpm"})
+@userge.on_cmd(
+    "botpm",
+    about={
+        "header": "Bot Pm handlers like Livegram Bot.",
+        "description": "You can use this command to enable/disable Bot Pm.\n"
+        "You can see all the settings of your bot after enabling "
+        "bot pm and hit /start in your Bot DM.\n"
+        "Note: You have to us Bot mode or Dual mode if you want to enable Bot Pm.",
+        "usage": "{tr}botpm",
+    },
+)
 async def bot_pm(msg: Message):
-    """ Toggle Bot Pm """
+    """Toggle Bot Pm"""
     global BOT_PM  # pylint: disable=global-statement
     if not userge.has_bot:
-        return await msg.err("You have to use Bot mode or Dual mode if you want to enable Bot Pm.")
+        return await msg.err(
+            "You have to use Bot mode or Dual mode if you want to enable Bot Pm."
+        )
     BOT_PM = not BOT_PM
     await SAVED_SETTINGS.update_one(
         {"_id": "BOT_PM"}, {"$set": {"data": BOT_PM}}, upsert=True
     )
     await msg.edit(
-        f"Bot Pm `{'Disabled ❌' if not BOT_PM else 'Enabled ✅'}` Successully.",
-        del_in=5
+        f"Bot Pm `{'Disabled ❌' if not BOT_PM else 'Enabled ✅'}` Successully.", del_in=5
     )
 
 
@@ -100,8 +108,7 @@ if userge.has_bot:
     userge_id = userge.id if userge.dual_mode else config.OWNER_ID[0]
     bot = userge.bot
 
-    @bot.on_message(~bannedFilter
-                    & filters.private & filters.command("start"), group=1)
+    @bot.on_message(~bannedFilter & filters.private & filters.command("start"), group=1)
     async def start(_, msg: PyroMessage):
         user_id = msg.from_user.id
         user_dict = await bot.get_user_dict(user_id)
@@ -112,8 +119,9 @@ if userge.has_bot:
             if not re.match(pattern, botpm.START_MEDIA):
                 await CHANNEL.log("Your `START_MEDIA` var is Invalid.")
             else:
-                path = os.path.join(config.Dynamic.DOWN_PATH,
-                                    os.path.split(botpm.START_MEDIA)[1])
+                path = os.path.join(
+                    config.Dynamic.DOWN_PATH, os.path.split(botpm.START_MEDIA)[1]
+                )
                 if not os.path.exists(path):
                     await pool.run_in_thread(wget.download)(botpm.START_MEDIA, path)
         if user_id != userge_id:
@@ -122,33 +130,39 @@ if userge.has_bot:
                 await HAVE_BLOCKED.delete_one({"user_id": user_id})
             if user_id not in _USERS:
                 await bot.send_message(
-                    userge_id,
-                    f"📳 {msg.from_user.mention} just started me."
+                    userge_id, f"📳 {msg.from_user.mention} just started me."
                 )
                 _USERS.append(user_id)
                 await USERS.insert_one({"user_id": user_id})
             copy_ = "https://github.com/UsergeTeam/Userge/blob/master/LICENSE"
-            markup = InlineKeyboardMarkup([
+            markup = InlineKeyboardMarkup(
                 [
-                    InlineKeyboardButton(text="👥 UsergeTeam", url="https://github.com/UsergeTeam"),
-                    InlineKeyboardButton(text="🧪 Repo", url=botpm.UPSTREAM_REPO)
-                ],
-                [InlineKeyboardButton(text="🎖 GNU GPL v3.0", url=copy_)]
-            ])
+                    [
+                        InlineKeyboardButton(
+                            text="👥 UsergeTeam", url="https://github.com/UsergeTeam"
+                        ),
+                        InlineKeyboardButton(text="🧪 Repo", url=botpm.UPSTREAM_REPO),
+                    ],
+                    [InlineKeyboardButton(text="🎖 GNU GPL v3.0", url=copy_)],
+                ]
+            )
             await send_start_text(msg, text, path, markup)
             return
         text = "Hey, you can configure me here."
-        markup = InlineKeyboardMarkup([[InlineKeyboardButton("Settings", callback_data="stngs")]])
+        markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("Settings", callback_data="stngs")]]
+        )
         if len(msg.command) > 1:
             #  https://github.com/UsergeTeam/Userge/blob/alpha/userge/plugins/help.py#L104
             return
         await send_start_text(msg, text, path, markup)
 
-    @bot.on_message(filters.user(userge_id)
-                    & filters.private & filters.command("settext"), group=1)
+    @bot.on_message(
+        filters.user(userge_id) & filters.private & filters.command("settext"), group=1
+    )
     async def set_text(_, msg: PyroMessage):
         global START_TEXT  # pylint: disable=global-statement
-        text = msg.text.split(' ', maxsplit=1)[1] if ' ' in msg.text else ''
+        text = msg.text.split(" ", maxsplit=1)[1] if " " in msg.text else ""
         replied = msg.reply_to_message
         if replied:
             text = replied.text or replied.caption
@@ -161,11 +175,12 @@ if userge.has_bot:
             )
             await msg.reply("Custom Bot Pm text Saved Successfully.")
 
-    @bot.on_message(filters.user(userge_id)
-                    & filters.private & filters.command("pmban"), group=1)
+    @bot.on_message(
+        filters.user(userge_id) & filters.private & filters.command("pmban"), group=1
+    )
     async def pm_ban(_, msg: PyroMessage):
         replied = msg.reply_to_message
-        user_id = msg.text.split(' ', maxsplit=1)[1] if ' ' in msg.text else ''
+        user_id = msg.text.split(" ", maxsplit=1)[1] if " " in msg.text else ""
         if not (replied or user_id):
             await msg.reply("reply to user message or give id to Ban.")
         elif replied and replied.from_user.id == userge_id:
@@ -199,11 +214,12 @@ if userge.has_bot:
             except Exception:
                 pass
 
-    @bot.on_message(filters.user(userge_id)
-                    & filters.private & filters.command("pmunban"), group=1)
+    @bot.on_message(
+        filters.user(userge_id) & filters.private & filters.command("pmunban"), group=1
+    )
     async def pm_unban(_, msg: PyroMessage):
         replied = msg.reply_to_message
-        user_id = msg.text.split(' ', maxsplit=1)[1] if ' ' in msg.text else ''
+        user_id = msg.text.split(" ", maxsplit=1)[1] if " " in msg.text else ""
         if not (replied or user_id):
             await msg.reply("reply to user message or give id to UnBan.")
         elif replied and replied.from_user.id == userge_id:
@@ -237,11 +253,12 @@ if userge.has_bot:
             except Exception:
                 pass
 
-    @bot.on_message(botPmFilter & ~bannedFilter
-                    & filters.private & filters.incoming, group=1)
+    @bot.on_message(
+        botPmFilter & ~bannedFilter & filters.private & filters.incoming, group=1
+    )
     async def bot_pm_handler(_, msg: PyroMessage):
-        if not hasattr(msg, '_client'):
-            setattr(msg, '_client', _)
+        if not hasattr(msg, "_client"):
+            setattr(msg, "_client", _)
         user = msg.from_user
         if user.id == userge_id:
             await handle_reply(msg)
@@ -270,8 +287,10 @@ After Adding a var, you can see your media when you start your Bot.
 """
 
     @bot.on_callback_query(
-        filters.regex("startcq|stngs|bothelp|misc|setmedia|settext|broadcast|stats|en_dis_bot_pm"),
-        group=1
+        filters.regex(
+            "startcq|stngs|bothelp|misc|setmedia|settext|broadcast|stats|en_dis_bot_pm"
+        ),
+        group=1,
     )
     async def cq_handler(_, cq: CallbackQuery):
         global BOT_PM, IN_CONVO  # pylint: disable=global-statement
@@ -279,13 +298,13 @@ After Adding a var, you can see your media when you start your Bot.
             [
                 [
                     InlineKeyboardButton("Broadcast", callback_data="broadcast"),
-                    InlineKeyboardButton("Statistics", callback_data="stats")
+                    InlineKeyboardButton("Statistics", callback_data="stats"),
                 ],
                 [
                     InlineKeyboardButton("Misc", callback_data="misc"),
-                    InlineKeyboardButton("Help", callback_data="bothelp")
+                    InlineKeyboardButton("Help", callback_data="bothelp"),
                 ],
-                [InlineKeyboardButton("Back", callback_data="startcq")]
+                [InlineKeyboardButton("Back", callback_data="startcq")],
             ]
         )
         if cq.data == "stngs":
@@ -294,9 +313,7 @@ After Adding a var, you can see your media when you start your Bot.
             mp = settings_markup
             mp.inline_keyboard.insert(0, btn)
             await cq.edit_message_text(
-                SETTINGS_TEXT,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                SETTINGS_TEXT, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "en_dis_bot_pm":
             BOT_PM = not BOT_PM
@@ -307,18 +324,18 @@ After Adding a var, you can see your media when you start your Bot.
             btn = [InlineKeyboardButton(text, callback_data=cq.data)]
             mp = settings_markup
             mp.inline_keyboard.insert(0, btn)
-            await cq.edit_message_reply_markup(
-                reply_markup=mp
-            )
+            await cq.edit_message_reply_markup(reply_markup=mp)
         elif cq.data == "bothelp":
-            mp = InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="stngs")]])
+            mp = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Back", callback_data="stngs")]]
+            )
             await cq.edit_message_text(
-                HELP_TEXT,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                HELP_TEXT, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "stats":
-            mp = InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="stngs")]])
+            mp = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Back", callback_data="stngs")]]
+            )
 
             out_str = f"""**Statistics:**
 
@@ -334,9 +351,7 @@ After Adding a var, you can see your media when you start your Bot.
 **Outgoing:** `{_STATS["outgoing"]}`
 """
             await cq.edit_message_text(
-                out_str,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                out_str, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "broadcast":
             await cq.message.delete()
@@ -345,9 +360,7 @@ After Adding a var, you can see your media when you start your Bot.
             except StopConversation as err:
                 IN_CONVO = False
                 if "message limit reached!" in str(err):
-                    await cq.message.reply(
-                        "You can only send 5 post message at once."
-                    )
+                    await cq.message.reply("You can only send 5 post message at once.")
                 else:
                     await cq.message.reply(
                         "**Broadcast process cancelled:** You didnt replied in 30 seconds."
@@ -357,76 +370,76 @@ After Adding a var, you can see your media when you start your Bot.
                 [
                     [
                         InlineKeyboardButton("Start Text", callback_data="settext"),
-                        InlineKeyboardButton("Start Media", callback_data="setmedia")
+                        InlineKeyboardButton("Start Media", callback_data="setmedia"),
                     ],
-                    [InlineKeyboardButton("Back", callback_data="stngs")]
+                    [InlineKeyboardButton("Back", callback_data="stngs")],
                 ]
             )
             await cq.edit_message_text(
-                MISC_TEXT,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                MISC_TEXT, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "setmedia":
-            mp = InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="misc")]])
+            mp = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Back", callback_data="misc")]]
+            )
             await cq.edit_message_text(
-                SET_MEDIA_TEXT,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                SET_MEDIA_TEXT, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "settext":
-            mp = InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="misc")]])
+            mp = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Back", callback_data="misc")]]
+            )
             await cq.edit_message_text(
-                SET_CUSTOM_TEXT,
-                disable_web_page_preview=True,
-                reply_markup=mp
+                SET_CUSTOM_TEXT, disable_web_page_preview=True, reply_markup=mp
             )
         elif cq.data == "startcq":
             user_dict = await userge.get_user_dict(cq.from_user.id)
-            mp = InlineKeyboardMarkup([[InlineKeyboardButton("Settings", callback_data="stngs")]])
+            mp = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Settings", callback_data="stngs")]]
+            )
             await cq.edit_message_text(
                 START_TEXT.format_map(SafeDict(**user_dict)),
                 disable_web_page_preview=True,
-                reply_markup=mp
+                reply_markup=mp,
             )
 
     async def send_start_text(
-        msg: PyroMessage, text: str, path: str, markup: Optional[InlineKeyboardMarkup] = None
+        msg: PyroMessage,
+        text: str,
+        path: str,
+        markup: Optional[InlineKeyboardMarkup] = None,
     ):
         if not path:
-            return await msg.reply(text, disable_web_page_preview=True, reply_markup=markup)
+            return await msg.reply(
+                text, disable_web_page_preview=True, reply_markup=markup
+            )
         if path.lower().endswith((".jpg", ".jpeg", ".png", ".bmp")):
             await bot.send_photo(
-                chat_id=msg.chat.id,
-                photo=path,
-                caption=text,
-                reply_markup=markup
+                chat_id=msg.chat.id, photo=path, caption=text, reply_markup=markup
             )
         elif path.lower().endswith((".mkv", ".mp4", ".webm")):
             await bot.send_video(
-                chat_id=msg.chat.id,
-                video=path,
-                caption=text,
-                reply_markup=markup
+                chat_id=msg.chat.id, video=path, caption=text, reply_markup=markup
             )
         else:
             await bot.send_document(
-                chat_id=msg.chat.id,
-                document=path,
-                caption=text,
-                reply_markup=markup
+                chat_id=msg.chat.id, document=path, caption=text, reply_markup=markup
             )
 
     async def increment_stats(incoming: bool):
         if incoming:
             _STATS["incoming"] += 1
             await STATS.update_one(
-                {"_id": "INCOMING_STATS"}, {"$set": {"data": _STATS["incoming"]}}, upsert=True
+                {"_id": "INCOMING_STATS"},
+                {"$set": {"data": _STATS["incoming"]}},
+                upsert=True,
             )
         else:
             _STATS["outgoing"] += 1
             await STATS.update_one(
-                {"_id": "OUTGOING_STATS"}, {"$set": {"data": _STATS["outgoing"]}}, upsert=True
+                {"_id": "OUTGOING_STATS"},
+                {"$set": {"data": _STATS["outgoing"]}},
+                upsert=True,
             )
 
     async def handle_incoming_message(msg: PyroMessage):
@@ -440,8 +453,11 @@ After Adding a var, you can see your media when you start your Bot.
         try:
             m = await msg.forward(userge_id)
             if msg.audio:
-                await bot.send_message(userge_id, f"{msg.from_user.mention} sent you a audio file.",
-                                       reply_to_message_id=m.id)
+                await bot.send_message(
+                    userge_id,
+                    f"{msg.from_user.mention} sent you a audio file.",
+                    reply_to_message_id=m.id,
+                )
                 m.forward_sender_name = msg.from_user.first_name
             if m.forward_from or m.forward_sender_name or m.forward_date:
                 id_ = 0
@@ -453,13 +469,13 @@ After Adding a var, you can see your media when you start your Bot.
                     del _U_ID_F_M_ID[id_]
                     await U_ID_F_M_ID.delete_one({"user_id": user_id})
 
-                await U_ID_F_M_ID.insert_one(
-                    {"user_id": user_id, "msg_id": m.id}
-                )
+                await U_ID_F_M_ID.insert_one({"user_id": user_id, "msg_id": m.id})
                 _U_ID_F_M_ID[m.id] = user_id
         except Exception as err:
             await CHANNEL.log(str(err), "INCOMING_HANDLER")
-            await msg.reply("Your message is not received, try to send it again after some time.")
+            await msg.reply(
+                "Your message is not received, try to send it again after some time."
+            )
         else:
             await increment_stats(True)
 
@@ -482,7 +498,9 @@ After Adding a var, you can see your media when you start your Bot.
                 reply_id = _U_ID_F_M_ID.get(replied.id)
             try:
                 if msg.text:
-                    await bot.send_message(reply_id, msg.text, disable_web_page_preview=True)
+                    await bot.send_message(
+                        reply_id, msg.text, disable_web_page_preview=True
+                    )
                 else:
                     await msg.copy(reply_id)
             except UserIsBlocked:
@@ -525,7 +543,8 @@ Type /send to confirm or /cancel to exit.
         IN_CONVO = True
         temp_msgs = []
         async with userge.bot.conversation(
-                msg.chat.id, timeout=30, limit=7) as conv:  # 5 post msgs and 2 command msgs
+            msg.chat.id, timeout=30, limit=7
+        ) as conv:  # 5 post msgs and 2 command msgs
             await conv.send_message(MESSAGE)
             filter_ = filters.create(lambda _, __, ___: filters.incoming)
             while True:
@@ -566,8 +585,12 @@ Type /send to confirm or /cancel to exit.
                 await conv.send_message(confirm_text)
                 response = await conv.get_response(filters=filter_)
 
-    async def send_broadcast_post(msg: PyroMessage, to_send_messages: List[PyroMessage]):
-        sending_text: str = f"🕒 Sending of the broadcast post to {len(_USERS)} users is started!"
+    async def send_broadcast_post(
+        msg: PyroMessage, to_send_messages: List[PyroMessage]
+    ):
+        sending_text: str = (
+            f"🕒 Sending of the broadcast post to {len(_USERS)} users is started!"
+        )
         await bot.send_message(msg.chat.id, sending_text)
         blocked_users: List[int] = []
         count: int = 0

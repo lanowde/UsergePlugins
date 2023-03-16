@@ -17,12 +17,17 @@ from hachoir.parser import createParser as CPR
 from userge import userge, Message
 
 
-@userge.on_cmd("tts", about={
-    'header': "Text To Speech",
-    'examples': [
-        "{tr}tts Userge", "{tr}tts en | Userge", "{tr}tts [reply to message]"
-    ]
-})
+@userge.on_cmd(
+    "tts",
+    about={
+        "header": "Text To Speech",
+        "examples": [
+            "{tr}tts Userge",
+            "{tr}tts en | Userge",
+            "{tr}tts [reply to message]",
+        ],
+    },
+)
 async def text_to_speech(message: Message):
     req_file_name = "gtts.mp3"
     replied = message.reply_to_message
@@ -32,7 +37,7 @@ async def text_to_speech(message: Message):
         if message.input_str:
             def_lang = message.input_str
     elif message.input_str:
-        if '|' in message.input_str:
+        if "|" in message.input_str:
             def_lang, text = message.input_str.split("|", maxsplit=1)
         else:
             text = message.input_str
@@ -57,7 +62,7 @@ async def text_to_speech(message: Message):
             caption=a_cap,
             duration=a_len,
             performer=a_perf,
-            title=a_title
+            title=a_title,
         )
         os.remove(req_file_name)
         await message.delete()

@@ -11,42 +11,58 @@ from pyrogram.raw.types import GroupCall
 from pyrogram.errors import (
     ChatAdminRequired,
     UserAlreadyParticipant,
-    UserBannedInChannel
+    UserBannedInChannel,
 )
 
 from pytgcalls import StreamType
-from pytgcalls.types import (
-    AudioVideoPiped,
-    AudioPiped,
-    VideoParameters
-)
+from pytgcalls.types import AudioVideoPiped, AudioPiped, VideoParameters
 from pytgcalls.exceptions import GroupCallNotFound, NotInGroupCallError
 
 from userge import userge, Message, pool
 from userge.utils import is_url, time_formatter, progress
 from . import (
-    call, CQ_MSG, QUEUE, GROUP_CALL_PARTICIPANTS,
-    CONTROL_CHAT_IDS, CURRENT_SONG, VC_CLIENT,
-    MAX_DURATION, LOG, CHANNEL, Dynamic, Vars
+    call,
+    CQ_MSG,
+    QUEUE,
+    GROUP_CALL_PARTICIPANTS,
+    CONTROL_CHAT_IDS,
+    CURRENT_SONG,
+    VC_CLIENT,
+    MAX_DURATION,
+    LOG,
+    CHANNEL,
+    Dynamic,
+    Vars,
 )
 from .resource import TgResource, UrlResource
 from .utils import (
-    reply_text, is_yt_url, requester, default_markup,
-    get_scheduled_text, get_song_info, get_song,
-    get_file_info, get_quality_ratios, get_duration,
-    get_stream_link
+    reply_text,
+    is_yt_url,
+    requester,
+    default_markup,
+    get_scheduled_text,
+    get_song_info,
+    get_song,
+    get_file_info,
+    get_quality_ratios,
+    get_duration,
+    get_stream_link,
 )
 
 
 async def play_music(msg: Message, forceplay: bool):
-    """ play music """
-    input_str = msg.filtered_input_str or getattr(msg.reply_to_message, 'text', '') or ''
+    """play music"""
+    input_str = (
+        msg.filtered_input_str or getattr(msg.reply_to_message, "text", "") or ""
+    )
     path = Path(input_str)
     if input_str:
         if is_yt_url(input_str):
             name, duration = await get_song_info(input_str)
             if duration == -1:
-                return await reply_text(msg, "**ERROR:** `Max song duration limit reached!`")
+                return await reply_text(
+                    msg, "**ERROR:** `Max song duration limit reached!`"
+                )
             if Dynamic.PLAYING and not forceplay:
                 msg = await reply_text(msg, get_scheduled_text(name, input_str))
             resource = UrlResource.parse(msg, name, input_str, duration)
@@ -60,21 +76,27 @@ async def play_music(msg: Message, forceplay: bool):
                 if not has_audio and not has_video:
                     raise Exception
                 duration = await get_duration(shlex.quote(input_str))
-                res = await pool.run_in_thread(requests.get)(input_str,
-                                                             allow_redirects=True,
-                                                             stream=True)
+                res = await pool.run_in_thread(requests.get)(
+                    input_str, allow_redirects=True, stream=True
+                )
                 headers = dict(res.headers)
                 try:
-                    filename = headers["Content-Disposition"].split('=', 1)[1].strip('"') or ''
+                    filename = (
+                        headers["Content-Disposition"].split("=", 1)[1].strip('"') or ""
+                    )
                 except KeyError:
                     filename = "Video" if has_video else "Music"
             except Exception:
-                return await reply_text(msg, "`invalid direct link provided to stream!`")
-            resource = UrlResource.parse(msg,
-                                         filename.replace('_', ' '),
-                                         input_str,
-                                         duration,
-                                         (height, width, has_audio, has_video))
+                return await reply_text(
+                    msg, "`invalid direct link provided to stream!`"
+                )
+            resource = UrlResource.parse(
+                msg,
+                filename.replace("_", " "),
+                input_str,
+                duration,
+                (height, width, has_audio, has_video),
+            )
             Vars.CLIENT = msg.client
             if forceplay:
                 QUEUE.insert(0, resource)
@@ -89,10 +111,9 @@ async def play_music(msg: Message, forceplay: bool):
                 return await reply_text(msg, "`invalid file path provided to stream!`")
             filename = path.name
             duration = await get_duration(path)
-            resource = TgResource.parse(msg,
-                                        filename.replace('_', ' '),
-                                        str(path.absolute()),
-                                        duration)
+            resource = TgResource.parse(
+                msg, filename.replace("_", " "), str(path.absolute()), duration
+            )
             Vars.CLIENT = msg.client
             if forceplay:
                 QUEUE.insert(0, resource)
@@ -120,26 +141,31 @@ async def play_music(msg: Message, forceplay: bool):
     elif msg.reply_to_message:
         replied = msg.reply_to_message
         replied_file = replied.audio or replied.video or replied.document
-        if not (replied.audio
-                or replied.video
-                or (replied.document and "video" in replied.document.mime_type)):
+        if not (
+            replied.audio
+            or replied.video
+            or (replied.document and "video" in replied.document.mime_type)
+        ):
             return await reply_text(msg, "Input not found")
         if replied.audio:
             resource = TgResource(
-                replied, replied_file.title or replied_file.file_name or "Song",
-                replied.audio.duration
+                replied,
+                replied_file.title or replied_file.file_name or "Song",
+                replied.audio.duration,
             )
         else:
-            resource = TgResource(replied,
-                                  replied_file.file_name or "Video",
-                                  0,
-                                  quality=int(msg.flags.get('-q', "60")),
-                                  is_video='-v' in msg.flags)
+            resource = TgResource(
+                replied,
+                replied_file.file_name or "Video",
+                0,
+                quality=int(msg.flags.get("-q", "60")),
+                is_video="-v" in msg.flags,
+            )
 
         if msg.sender_chat:
-            setattr(resource.message, 'sender_chat', msg.sender_chat)
+            setattr(resource.message, "sender_chat", msg.sender_chat)
         elif msg.from_user:
-            setattr(resource.message, 'from_user', msg.from_user)
+            setattr(resource.message, "from_user", msg.from_user)
         Vars.CLIENT = msg.client
         if forceplay:
             QUEUE.insert(0, resource)
@@ -162,9 +188,9 @@ async def skip_song(clear_queue: bool = False):
             Vars.CHAT_ID,
             AudioPiped(
                 "http://duramecho.com/Misc/SilentCd/Silence{}s.mp3".format(
-                    '01' if not QUEUE or clear_queue else '32'
+                    "01" if not QUEUE or clear_queue else "32"
                 )
-            )
+            ),
         )
 
     if CQ_MSG:
@@ -190,22 +216,21 @@ async def skip_song(clear_queue: bool = False):
             await url_down(resource)
     except Exception as err:
         Dynamic.PLAYING = False
-        out = f'**ERROR:** `{err}`'
+        out = f"**ERROR:** `{err}`"
         await CHANNEL.log(f"`{format_exc().strip()}`")
         if QUEUE:
             out += "\n\n`Playing next Song.`"
-        await Vars.CLIENT.send_message(
-            Vars.CHAT_ID,
-            out,
-            disable_web_page_preview=True
-        )
+        await Vars.CLIENT.send_message(Vars.CHAT_ID, out, disable_web_page_preview=True)
         await skip_song()
 
 
 async def on_join(group_call: Optional[GroupCall] = None) -> None:
     if group_call:
-        LOG.info("Joined group call: [%s], participants: [%s]",
-                 group_call.title, group_call.participants_count)
+        LOG.info(
+            "Joined group call: [%s], participants: [%s]",
+            group_call.title,
+            group_call.participants_count,
+        )
     else:
         LOG.info("Joined group call: [%s] [joinvc]", Vars.CHAT_NAME)
         try:
@@ -221,8 +246,11 @@ async def on_join(group_call: Optional[GroupCall] = None) -> None:
 async def on_left(group_call: Optional[GroupCall] = None) -> None:
 
     if group_call:
-        LOG.info("Left group call: [%s], participants: [%s]",
-                 group_call.title, group_call.participants_count)
+        LOG.info(
+            "Left group call: [%s], participants: [%s]",
+            group_call.title,
+            group_call.participants_count,
+        )
     else:
         LOG.info("Left group call: [%s] [leavevc]", Vars.CHAT_NAME)
 
@@ -241,32 +269,32 @@ async def on_left(group_call: Optional[GroupCall] = None) -> None:
 
 
 async def invite_vc_client(msg: Message) -> bool:
-    """ Invites the VC_CLIENT to the current chat. """
+    """Invites the VC_CLIENT to the current chat."""
     invite_link = msg.filtered_input_str
     if not invite_link:
         try:
             link = await msg.client.create_chat_invite_link(msg.chat.id)
         except ChatAdminRequired:
-            await reply_text(msg, '`Provide a invite link along command.!!`')
+            await reply_text(msg, "`Provide a invite link along command.!!`")
             return False
         else:
             invite_link = link.invite_link
     try:
         await VC_CLIENT.join_chat(invite_link)
     except UserAlreadyParticipant:
-        await reply_text(msg, 'User already present in this chat')
+        await reply_text(msg, "User already present in this chat")
     except UserBannedInChannel:
-        await reply_text(msg, 'Unable to join this chat since user is banned here.')
+        await reply_text(msg, "Unable to join this chat since user is banned here.")
     except Exception as e:
-        await reply_text(msg, f'**ERROR**: {e}')
+        await reply_text(msg, f"**ERROR**: {e}")
     else:
-        await reply_text(msg, 'VC_CLIENT Successfully joined.')
+        await reply_text(msg, "VC_CLIENT Successfully joined.")
         return True
     return False
 
 
 async def url_down(resource: UrlResource):
-    """ youtube downloader """
+    """youtube downloader"""
     message = await reply_text(resource.message, f"`Preparing {resource}`")
     stream_link = await get_stream_link(resource.url)
 
@@ -281,16 +309,18 @@ async def url_down(resource: UrlResource):
     else:
         height, width, has_audio, has_video = await get_file_info(stream_link)
 
-    CURRENT_SONG.update({
-        'file': stream_link,
-        "height": height,
-        "width": width,
-        "has_video": has_video,
-        "is_video": resource.is_video and has_video,
-        "duration": duration,
-        "quality": quality,
-        "is_live": duration == 0
-    })
+    CURRENT_SONG.update(
+        {
+            "file": stream_link,
+            "height": height,
+            "width": width,
+            "has_video": has_video,
+            "is_video": resource.is_video and has_video,
+            "duration": duration,
+            "quality": quality,
+            "is_live": duration == 0,
+        }
+    )
 
     if resource.is_video and has_video:
         await play_video(stream_link, height, width, quality)
@@ -308,13 +338,14 @@ async def url_down(resource: UrlResource):
     Vars.BACK_BUTTON_TEXT = (
         f"🎶 **Now playing:** [{resource}]({resource.url})\n"
         f"⏳ **Duration:** `{'Live' if not duration else time_formatter(duration)}`\n"
-        f"🎧 **Requested By:** {requester(msg)}")
+        f"🎧 **Requested By:** {requester(msg)}"
+    )
 
     raw_msg = await reply_text(
         msg,
         Vars.BACK_BUTTON_TEXT,
         markup=default_markup() if userge.has_bot else None,
-        to_reply=False
+        to_reply=False,
     )
     CQ_MSG.append(raw_msg)
 
@@ -323,21 +354,22 @@ async def url_down(resource: UrlResource):
 
 
 async def tg_down(resource: TgResource):
-    """ TG downloader """
+    """TG downloader"""
     msg = resource.message
-    setattr(msg, '_client', Vars.CLIENT)
+    setattr(msg, "_client", Vars.CLIENT)
     try:
         message = await reply_text(
             msg, f"`{'Preparing' if resource.path else 'Downloading'} {resource}`"
         )
     except TypeError:
-        message = await reply_text(msg, 'Preparing' if resource.path else 'Downloading')
+        message = await reply_text(msg, "Preparing" if resource.path else "Downloading")
     if not resource.path:
         path = await msg.client.download_media(
             message=msg,
             file_name="temp_music_dir/",
             progress=progress,
-            progress_args=(message, "Downloading..."))
+            progress_args=(message, "Downloading..."),
+        )
         filename = os.path.join("temp_music_dir", os.path.basename(path))
         if msg.video or msg.document:
             resource.duration = await get_duration(shlex.quote(filename))
@@ -351,16 +383,18 @@ async def tg_down(resource: TgResource):
 
     quality = max(min(100, int(resource.quality)), 1)
 
-    CURRENT_SONG.update({
-        'file': filename,
-        "height": height,
-        "width": width,
-        "has_video": has_video,
-        "is_video": resource.is_video and has_video,
-        "duration": resource.duration,
-        "quality": quality,
-        "is_live": resource.duration == 0
-    })
+    CURRENT_SONG.update(
+        {
+            "file": filename,
+            "height": height,
+            "width": width,
+            "has_video": has_video,
+            "is_video": resource.is_video and has_video,
+            "duration": resource.duration,
+            "quality": quality,
+            "is_live": resource.duration == 0,
+        }
+    )
 
     if resource.is_video and has_video:
         await play_video(filename, height, width, quality)
@@ -370,10 +404,7 @@ async def tg_down(resource: TgResource):
         out = "Invalid media found in queue, and skipped"
         if QUEUE:
             out += "\n\n`Playing next Song.`"
-        await reply_text(
-            msg,
-            out
-        )
+        await reply_text(msg, out)
         return await skip_song()
 
     await message.delete()
@@ -382,122 +413,105 @@ async def tg_down(resource: TgResource):
     Vars.BACK_BUTTON_TEXT = (
         f"🎶 **Now playing:** [{resource}]({msg.link})\n"
         f"⏳ **Duration:** `{'Live' if not d else time_formatter(d)}`\n"
-        f"🎧 **Requested By:** {requester(msg)}")
+        f"🎧 **Requested By:** {requester(msg)}"
+    )
 
     raw_msg = await reply_text(
         msg,
         Vars.BACK_BUTTON_TEXT,
         markup=default_markup() if userge.has_bot else None,
-        to_reply=False
+        to_reply=False,
     )
     CQ_MSG.append(raw_msg)
 
 
 async def seek_music(dur: int, jump: bool = False) -> bool:
-    if CURRENT_SONG.get('is_live', False):
+    if CURRENT_SONG.get("is_live", False):
         return False
     if jump:
         seek_point = max(0, dur)
-        CURRENT_SONG['start'] = time.time() - seek_point
+        CURRENT_SONG["start"] = time.time() - seek_point
     else:
-        seek_point = max(0, (time.time() - CURRENT_SONG['start'] + dur))
+        seek_point = max(0, (time.time() - CURRENT_SONG["start"] + dur))
         # adjusting seek time in start time
-        CURRENT_SONG['start'] -= dur
-    if seek_point > CURRENT_SONG['duration']:
+        CURRENT_SONG["start"] -= dur
+    if seek_point > CURRENT_SONG["duration"]:
         return False
-    if CURRENT_SONG['is_video']:
+    if CURRENT_SONG["is_video"]:
         await play_video(
-            CURRENT_SONG['file'],
-            CURRENT_SONG['height'],
-            CURRENT_SONG['width'],
-            CURRENT_SONG['quality'],
-            int(float(seek_point))
+            CURRENT_SONG["file"],
+            CURRENT_SONG["height"],
+            CURRENT_SONG["width"],
+            CURRENT_SONG["quality"],
+            int(float(seek_point)),
         )
     else:
-        await play_audio(
-            CURRENT_SONG['file'],
-            seek_point
-        )
+        await play_audio(CURRENT_SONG["file"], seek_point)
     return True
 
 
 async def replay_music(flags: dict = None) -> bool:
-    if flags and '-v' in flags:
-        is_video = CURRENT_SONG['has_video']
-        CURRENT_SONG['is_video'] = is_video
-    elif flags and '-a' in flags:
+    if flags and "-v" in flags:
+        is_video = CURRENT_SONG["has_video"]
+        CURRENT_SONG["is_video"] = is_video
+    elif flags and "-a" in flags:
         is_video = False
     else:
-        is_video = CURRENT_SONG['is_video']
+        is_video = CURRENT_SONG["is_video"]
     try:
         if is_video:
             await play_video(
-                CURRENT_SONG['file'],
-                CURRENT_SONG['height'],
-                CURRENT_SONG['width'],
-                CURRENT_SONG['quality']
+                CURRENT_SONG["file"],
+                CURRENT_SONG["height"],
+                CURRENT_SONG["width"],
+                CURRENT_SONG["quality"],
             )
         else:
-            await play_audio(
-                CURRENT_SONG['file']
-            )
+            await play_audio(CURRENT_SONG["file"])
     except KeyError:
         return False
     return True
 
 
-async def play_video(file: str, height: int, width: int, quality: int, seek: int = None):
+async def play_video(
+    file: str, height: int, width: int, quality: int, seek: int = None
+):
     r_width, r_height = get_quality_ratios(width, height, quality)
-    ffmpeg_parm = f'-ss {seek} -atend -to {CURRENT_SONG["duration"]}' if seek else ''
+    ffmpeg_parm = f'-ss {seek} -atend -to {CURRENT_SONG["duration"]}' if seek else ""
 
     try:
         await call.change_stream(
             Vars.CHAT_ID,
             AudioVideoPiped(
                 file,
-                video_parameters=VideoParameters(
-                    r_width,
-                    r_height,
-                    25
-                ),
-                additional_ffmpeg_parameters=ffmpeg_parm
-            )
+                video_parameters=VideoParameters(r_width, r_height, 25),
+                additional_ffmpeg_parameters=ffmpeg_parm,
+            ),
         )
     except NotInGroupCallError:
         await call.join_group_call(
             Vars.CHAT_ID,
             AudioVideoPiped(
                 file,
-                video_parameters=VideoParameters(
-                    r_width,
-                    r_height,
-                    25
-                ),
-                additional_ffmpeg_parameters=ffmpeg_parm
-            )
+                video_parameters=VideoParameters(r_width, r_height, 25),
+                additional_ffmpeg_parameters=ffmpeg_parm,
+            ),
         )
     if not seek:
-        CURRENT_SONG['start'] = time.time()
+        CURRENT_SONG["start"] = time.time()
 
 
 async def play_audio(file: str, seek: int = None):
-    ffmpeg_parm = f'-ss {seek} -atend -to {CURRENT_SONG["duration"]}' if seek else ''
+    ffmpeg_parm = f'-ss {seek} -atend -to {CURRENT_SONG["duration"]}' if seek else ""
     try:
         await call.change_stream(
-            Vars.CHAT_ID,
-            AudioPiped(
-                file,
-                additional_ffmpeg_parameters=ffmpeg_parm
-            )
+            Vars.CHAT_ID, AudioPiped(file, additional_ffmpeg_parameters=ffmpeg_parm)
         )
     except NotInGroupCallError:
         await call.join_group_call(
             Vars.CHAT_ID,
-            AudioPiped(
-                file,
-                additional_ffmpeg_parameters=ffmpeg_parm
-            ),
+            AudioPiped(file, additional_ffmpeg_parameters=ffmpeg_parm),
             stream_type=StreamType().pulse_stream,
         )
     if not seek:
-        CURRENT_SONG['start'] = time.time()
+        CURRENT_SONG["start"] = time.time()
