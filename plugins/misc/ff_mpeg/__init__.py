@@ -6,4 +6,4 @@
 #
 # All rights reserved.
 
-""" fmmpeg module """
+""" ffmpeg module """

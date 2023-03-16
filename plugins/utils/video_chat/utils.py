@@ -22,6 +22,8 @@ from . import (QUEUE, LOG,
                MAX_DURATION,
                YTDL_PATH,
                Dynamic, Vars)
+
+
 ytdl = get_custom_import_re(YTDL_PATH)
 
 _SCHEDULED = "[{title}]({link}) Scheduled to QUEUE on #{position} position"
@@ -191,7 +193,7 @@ def get_song_info(url: str) -> Tuple[str, int]:
 async def get_stream_link(link: str) -> str:
     yt_dl = (os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")).replace("_", "-")
     cmd = yt_dl + \
-        " --geo-bypass -g -f best[height<=?720][width<=?1280]/best " + link
+        " --geo-bypass -g -f best[height<=?480][width<=?854]/best " + link
     out, err, _, _ = await runcmd(cmd)
     if err:
         LOG.error(err)
@@ -223,7 +225,7 @@ async def get_file_info(file) -> Tuple[int, int, bool, bool]:
     for stream in streams:
         if (
             stream.get('codec_type', '') == 'video'
-            and stream.get('codec_name', '') not in ['png', 'jpeg', 'jpg']
+            and stream.get('codec_name', '') not in ('png', 'jpeg', 'jpg')
         ):
             width = int(stream.get('width', 0))
             height = int(stream.get('height', 0))
@@ -250,7 +252,7 @@ def requester(msg: Message):
 
 
 def get_quality_ratios(w: int, h: int, q: int) -> Tuple[int, int]:
-    rescaling = min(w, 1280) * 100 / w if w > h else min(h, 720) * 100 / h
+    rescaling = min(w, 854) * 100 / w if w > h else min(h, 480) * 100 / h
     h = round((h * rescaling) / 100 * (q / 100))
     w = round((w * rescaling) / 100 * (q / 100))
     return w - 1 if w % 2 else w, h - 1 if h % 2 else h

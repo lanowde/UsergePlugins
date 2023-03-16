@@ -131,9 +131,9 @@ async def play_music(msg: Message, forceplay: bool):
             )
         else:
             resource = TgResource(replied,
-                                  replied_file.file_name,
+                                  replied_file.file_name or "Video",
                                   0,
-                                  quality=int(msg.flags.get('-q', "80")),
+                                  quality=int(msg.flags.get('-q', "60")),
                                   is_video='-v' in msg.flags)
 
         if msg.sender_chat:
@@ -326,9 +326,12 @@ async def tg_down(resource: TgResource):
     """ TG downloader """
     msg = resource.message
     setattr(msg, '_client', Vars.CLIENT)
-    message = await reply_text(
-        msg, f"`{'Preparing' if resource.path else 'Downloading'} {resource}`"
-    )
+    try:
+        message = await reply_text(
+            msg, f"`{'Preparing' if resource.path else 'Downloading'} {resource}`"
+        )
+    except TypeError:
+        message = await reply_text(msg, 'Preparing' if resource.path else 'Downloading')
     if not resource.path:
         path = await msg.client.download_media(
             message=msg,

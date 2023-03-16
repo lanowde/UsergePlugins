@@ -9,7 +9,7 @@ class TgResource:
                  name: str,
                  duration: int,
                  path: str = "",
-                 quality: int = 80,
+                 quality: int = 60,
                  is_video: bool = False) -> None:
         self.message = message
         self.name = name
@@ -25,7 +25,7 @@ class TgResource:
               path: str = "",
               duration: int = 0) -> 'TgResource':
         is_video = '-v' in message.flags
-        quality = message.flags.get('-q', 80)
+        quality = message.flags.get('-q', 60)
         return cls(message, name, duration, path, quality, is_video)
 
     def __repr__(self) -> str:
@@ -43,7 +43,7 @@ class UrlResource:
                  name: str,
                  url: str,
                  duration: int,
-                 quality: int = 80,
+                 quality: int = 60,
                  is_video: bool = False,
                  file_info: Tuple[int, int, bool, bool] = None) -> None:
         self.message = message
@@ -62,7 +62,7 @@ class UrlResource:
               duration: int,
               file_info: Tuple[int, int, bool, bool] = None) -> 'UrlResource':
         is_video = '-v' in message.flags
-        quality = message.flags.get('-q', 80)
+        quality = message.flags.get('-q', 60)
         return cls(message, name, url, duration, quality, is_video, file_info)
 
     def __repr__(self) -> str:

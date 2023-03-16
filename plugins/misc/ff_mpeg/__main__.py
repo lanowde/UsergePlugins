@@ -99,14 +99,14 @@ async def get_media_path_and_name(
     return file_path, file_name
 
 
-@userge.on_cmd("x256", about={
-    'header': "Encode a file using x256",
+@userge.on_cmd("x265", about={
+    'header': "Encode a file using x265",
     'flags': {'-b': 'Custom bitrate',
               '-d': 'Delete media after process done'},
-    'usage': "{tr}x256 [file / folder path | direct link | reply to telegram file]",
-    'examples': ['{tr}x256 link', '{tr}x256 path']}, check_downpath=True)
-async def encode_x256(message: Message):
-    """ encode using x256 """
+    'usage': "{tr}x265 [file / folder path | direct link | reply to telegram file]",
+    'examples': ['{tr}x265 link', '{tr}x265 path']}, check_downpath=True)
+async def encode_x265(message: Message):
+    """ encode using x265 """
     replied = message.reply_to_message
     custom_bitrate = 28
     if message.flags and '-b' in message.flags:
@@ -117,8 +117,8 @@ async def encode_x256(message: Message):
 
     dl_loc, file_name = data
     FF_MPEG_DOWN_LOAD_MEDIA_PATH.mkdir(parents=True, exist_ok=True)
-    video_file = f"{FF_MPEG_DOWN_LOAD_MEDIA_PATH}/x256_{file_name}"
-    await message.edit("`Encoding to x256...`")
+    video_file = f"{FF_MPEG_DOWN_LOAD_MEDIA_PATH}/x265_{file_name}"
+    await message.edit("`Encoding to x265...`")
     start = datetime.now()
     try:
         await run(
@@ -205,7 +205,7 @@ async def video_to_audio(message: Message):
     'header': "Scale a video to a given quality using h264",
     'flags': {'-q': 'Video Quality 144/240/360/480/720/etc',
               '-b': 'Custom bitrate',
-              '-c': 'Compress using x256',
+              '-c': 'Compress using x265',
               '-d': 'Delete media after process done'},
     'usage': "{tr}vscale -q quality [file / folder path | direct link | reply to telegram file]",
     'examples': ['{tr}vscale -q360 link', '{tr}vscale -d -q360 path']}, check_downpath=True)
