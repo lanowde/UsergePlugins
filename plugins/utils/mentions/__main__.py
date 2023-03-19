@@ -14,6 +14,8 @@ from pyrogram import enums
 
 from userge import userge, Message, config, filters, get_collection
 
+LOG = userge.getLogger(__name__)  # logger object
+
 SAVED_SETTINGS = get_collection("CONFIGS")
 TOGGLE = False
 
@@ -77,19 +79,10 @@ async def handle_mentions(msg: Message):
     client = userge.bot if userge.has_bot else userge
     try:
         await client.send_message(
-            chat_id=userge.id if userge.has_bot else config.LOG_CHANNEL_ID,
+            chat_id=config.LOG_CHANNEL_ID,
             text=text,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([[button]]),
         )
-    except PeerIdInvalid:
-        if userge.dual_mode:
-            await userge.send_message(userge.id, "/start")
-            await client.send_message(
-                chat_id=userge.id if userge.has_bot else config.LOG_CHANNEL_ID,
-                text=text,
-                disable_web_page_preview=True,
-                reply_markup=InlineKeyboardMarkup([[button]]),
-            )
-        else:
-            raise
+    except Exception as exc:
+        LOG.exception(exc)
