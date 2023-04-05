@@ -183,7 +183,7 @@ def _set_data(errored: bool = False) -> None:
     global _CHAT, _MSG_ID, _IS_TELEGRAPH  # pylint: disable=global-statement
 
     pattern_1 = r"^(http(?:s?):\/\/)?(www\.)?(t.me)(\/c\/(\d+)|:?\/(\w+))?\/(\d+)$"
-    pattern_2 = r"^https://telegra\.ph/file/\w+\.\w+$"
+    pattern_2 = r"^https://(telegra|graph)\.(ph|org)/file/\w+\.\w+$"
     if alive.ALIVE_MEDIA and not errored:
         if alive.ALIVE_MEDIA.lower().strip() == "nothing":
             _CHAT = "text_format"
