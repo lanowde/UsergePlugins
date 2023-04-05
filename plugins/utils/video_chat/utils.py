@@ -195,7 +195,7 @@ def get_song_info(url: str) -> Tuple[str, int]:
 
 async def get_stream_link(link: str) -> str:
     yt_dl = (os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")).replace("_", "-")
-    cmd = yt_dl + " --geo-bypass -g -f best[height<=?480][width<=?854]/best " + link
+    cmd = yt_dl + " --geo-bypass -g -f best[height<=?480][width<=?854] " + link
     out, err, _, _ = await runcmd(cmd)
     if err:
         LOG.error(err)
