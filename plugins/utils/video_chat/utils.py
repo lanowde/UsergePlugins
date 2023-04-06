@@ -17,7 +17,6 @@ from . import (
     QUEUE,
     LOG,
     CURRENT_SONG,
-    CONTROL_CHAT_IDS,
     GROUP_CALL_PARTICIPANTS,
     MAX_DURATION,
     YTDL_PATH,
@@ -72,10 +71,8 @@ def vc_chat(func):
     """decorator for Video-Chat chat"""
 
     async def checker(msg: Message):
-        if Vars.CHAT_ID and msg.chat.id in ([Vars.CHAT_ID] + CONTROL_CHAT_IDS):
+        if Vars.CHAT_ID:
             await func(msg)
-        elif Vars.CHAT_ID and msg.outgoing:
-            await msg.edit("You can't access video_chat from this chat.")
         elif msg.outgoing:
             await msg.edit("`Haven't join any Video-Chat...`")
 

@@ -25,7 +25,6 @@ from . import (
     CQ_MSG,
     QUEUE,
     GROUP_CALL_PARTICIPANTS,
-    CONTROL_CHAT_IDS,
     CURRENT_SONG,
     VC_CLIENT,
     MAX_DURATION,
@@ -256,7 +255,6 @@ async def on_left(group_call: Optional[GroupCall] = None) -> None:
 
     Vars.CHAT_NAME = ""
     Vars.CHAT_ID = 0
-    CONTROL_CHAT_IDS.clear()
     QUEUE.clear()
     CURRENT_SONG.clear()
     GROUP_CALL_PARTICIPANTS.clear()

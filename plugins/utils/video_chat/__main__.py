@@ -49,7 +49,6 @@ from . import (
     QUEUE,
     GROUP_CALL_PARTICIPANTS,
     CURRENT_SONG,
-    CONTROL_CHAT_IDS,
     LOG,
     VC_SESSION,
     VC_CLIENT,
@@ -134,11 +133,6 @@ async def joinvc(msg: Message):
             return await reply_text(msg, f"Invalid Join In Chat Specified\n{e}")
         Vars.CHAT_ID = _chat.id
         Vars.CHAT_NAME = _chat.title
-        # Joins video_chat in a remote chat and control it from Saved Messages
-        # / Linked Chat
-        CONTROL_CHAT_IDS.append(userge.id)
-        if _chat.linked_chat:
-            CONTROL_CHAT_IDS.append(_chat.linked_chat.id)
     else:
         chat_id_ = msg.chat.username or msg.chat.id
         try:
@@ -164,7 +158,6 @@ async def joinvc(msg: Message):
             join_as = (await VC_CLIENT.get_chat(join_as)).id
         except Exception as e:
             Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-            CONTROL_CHAT_IDS.clear()
             return await reply_text(msg, f"Invalid Join As Chat Specified\n{e}")
         join_as_peers = await VC_CLIENT.invoke(
             GetGroupCallJoinAs(peer=(await VC_CLIENT.resolve_peer(Vars.CHAT_ID)))
@@ -175,7 +168,6 @@ async def joinvc(msg: Message):
             for peers in join_as_peers.peers
         ]:
             Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-            CONTROL_CHAT_IDS.clear()
             return await reply_text(
                 msg, "You cant join the video chat as this channel."
             )
@@ -199,11 +191,9 @@ async def joinvc(msg: Message):
             await VC_CLIENT.invoke(CreateGroupCall(peer=peer, random_id=2))
             await asyncio.sleep(3)
             Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-            CONTROL_CHAT_IDS.clear()
             return await joinvc(msg)
         except Exception as err:
             Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-            CONTROL_CHAT_IDS.clear()
             return await reply_text(msg, str(err))
     except (NodeJSNotInstalled, TooOldNodeJSVersion):
         return await reply_text(
@@ -213,11 +203,9 @@ async def joinvc(msg: Message):
         await call.leave_group_call(Vars.CHAT_ID)
         await asyncio.sleep(3)
         Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-        CONTROL_CHAT_IDS.clear()
         return await joinvc(msg)
     except Exception as e:
         Vars.CHAT_ID, Vars.CHAT_NAME = 0, ""
-        CONTROL_CHAT_IDS.clear()
         return await reply_text(msg, f"Error during Joining the Call\n`{e}`")
 
     await on_join()

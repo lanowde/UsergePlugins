@@ -42,7 +42,6 @@ CHANNEL = userge.getCLogger(__name__)
 LOG = userge.getLogger()
 
 CURRENT_SONG = {}
-CONTROL_CHAT_IDS: List[int] = []
 CQ_MSG: List[RawMessage] = []
 QUEUE: List[Union[TgResource, UrlResource]] = []
 GROUP_CALL_PARTICIPANTS: List[int] = []
