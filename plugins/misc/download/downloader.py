@@ -14,8 +14,10 @@ import os
 import re
 from datetime import datetime
 from json import dumps
+from pathlib import Path
+from secrets import token_hex
 from typing import Tuple, Union
-from urllib.parse import unquote_plus
+from urllib.parse import unquote_plus, urlsplit
 
 from pySmartDL import SmartDL
 from pyrogram.types import Message as PyroMessage
@@ -41,6 +43,17 @@ async def handle_download(
             dlloc.append(dl_loc)
         return dumps(dlloc), din
     return await tg_download(message, resource)
+
+
+def get_filename_from_url(url):
+    path = urlsplit(url).path
+    if not path:
+        return token_hex(nbytes=8)
+    filename = Path(path).name
+    filename = unquote_plus(filename)
+    if len(filename) > 63:
+        filename = str(Path(filename).with_stem(filename[:60]))
+    return filename
 
 
 async def url_download(message: Message, url: str) -> Tuple[str, int]:
@@ -71,7 +84,7 @@ async def url_download(message: Message, url: str) -> Tuple[str, int]:
         raise Exception("invalid telegram message link!")
     await message.edit("`Downloading From URL...`")
     start_t = datetime.now()
-    custom_file_name = unquote_plus(os.path.basename(url))
+    custom_file_name = get_filename_from_url(url)
     if "|" in url:
         url, c_file_name = url.split("|", maxsplit=1)
         url = url.strip()
