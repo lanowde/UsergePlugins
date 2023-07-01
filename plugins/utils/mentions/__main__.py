@@ -57,7 +57,6 @@ async def toggle_mentions(msg: Message):
     allow_via_bot=False,
 )
 async def handle_mentions(msg: Message):
-
     if TOGGLE is False:
         return
 

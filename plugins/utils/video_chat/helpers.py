@@ -243,7 +243,6 @@ async def on_join(group_call: Optional[GroupCall] = None) -> None:
 
 
 async def on_left(group_call: Optional[GroupCall] = None) -> None:
-
     if group_call:
         LOG.info(
             "Left group call: [%s], participants: [%s]",

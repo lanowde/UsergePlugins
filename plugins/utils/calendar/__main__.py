@@ -23,7 +23,6 @@ from userge import userge, Message
     },
 )
 async def _calendar(message: Message):
-
     if not message.input_str:
         await message.edit("`Searching...`")
         try:

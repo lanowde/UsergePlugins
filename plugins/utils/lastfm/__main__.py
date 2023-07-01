@@ -222,7 +222,6 @@ async def get_last_played(msg: Message):
 
 @userge.add_task
 async def lastfm_worker():
-
     user = pylast.LastFMNetwork(
         api_key=lastfm.API_KEY,
         api_secret=lastfm.API_SECRET,

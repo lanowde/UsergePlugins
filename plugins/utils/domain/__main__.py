@@ -27,7 +27,6 @@ from userge import userge, Message
     allow_via_bot=False,
 )
 async def creator(m: Message):
-
     await m.edit("__This may take a while, please wait ...__")
 
     if "-c" in m.flags:

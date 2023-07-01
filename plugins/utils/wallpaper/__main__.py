@@ -36,7 +36,6 @@ from userge import userge, Message, pool
     },
 )
 async def wall_(msg: Message):
-
     if os.path.exists("wallpapers/"):
         shutil.rmtree("wallpapers/", ignore_errors=True)
 

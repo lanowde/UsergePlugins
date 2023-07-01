@@ -145,7 +145,6 @@ async def set_profile_picture(message: Message):
             or (replied.document and "image" in replied.document.mime_type)
         )
     ):
-
         await userge.download_media(
             message=replied,
             file_name=PHOTO,

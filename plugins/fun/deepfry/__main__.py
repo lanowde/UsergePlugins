@@ -87,7 +87,6 @@ async def deepfryer(message: Message):
 
 
 async def deepfry(img):
-
     img = Image.open(img)
     colours = (
         (random.randint(50, 200), random.randint(40, 170), random.randint(40, 190)),

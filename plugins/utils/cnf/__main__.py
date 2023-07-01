@@ -26,7 +26,6 @@ from userge import userge, Message
     },
 )
 async def cnf(message: Message):
-
     await message.edit("`Searching...`")
     base_url = "https://command-not-found.com/"
 
