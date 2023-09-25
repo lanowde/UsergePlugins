@@ -8,11 +8,14 @@
 #
 # All rights reserved.
 
-from pyrogram.errors import PeerIdInvalid, BadRequest
+import os
+
+from pyrogram.errors import PeerIdInvalid, BadRequest, UserIsBlocked
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram import enums
 
 from userge import userge, Message, config, filters, get_collection
+
 
 SAVED_SETTINGS = get_collection("CONFIGS")
 TOGGLE = False
@@ -54,7 +57,7 @@ async def toggle_mentions(msg: Message):
     group=1,
     allow_via_bot=False,
 )
-async def handle_mentions(msg: Message):
+async def handle_mentions(msg: Message, is_retry=False):
     if TOGGLE is False:
         return
 
@@ -78,6 +81,7 @@ async def handle_mentions(msg: Message):
         text += f"\n`{msg.text}`"
     buttons = [[InlineKeyboardButton(text="📃 Message Link", url=link)]]
     chat_id = config.LOG_CHANNEL_ID
+    dl_loc = None
     client = userge.bot if userge.has_bot else userge
     if not msg.text:
         media_client = userge if is_private else client
@@ -85,9 +89,18 @@ async def handle_mentions(msg: Message):
     try:
         if not msg.text:
             try:
-                sentMedia = await media_client.copy_message(
-                    chat_id, msg.chat.id, msg.id
-                )
+                media = msg.photo or msg.video or None
+                if media and media.ttl_seconds:
+                    dl_loc = await msg.download(config.Dynamic.DOWN_PATH)
+                    if isinstance(dl_loc, str):
+                        if msg.media.value == "photo":
+                            sentMedia = await media_client.send_photo(chat_id, dl_loc)
+                elif msg.media.value == "video":
+                    sentMedia = await media_client.send_video(chat_id, dl_loc)
+                else:
+                    sentMedia = await media_client.copy_message(
+                        chat_id, msg.chat.id, msg.id
+                    )
             except (PeerIdInvalid, BadRequest):
                 sentMedia = await userge.copy_message(
                     config.LOG_CHANNEL_ID, msg.chat.id, msg.id
@@ -101,26 +114,14 @@ async def handle_mentions(msg: Message):
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(buttons),
         )
-    except PeerIdInvalid:
-        if userge.dual_mode:
+    except (PeerIdInvalid, UserIsBlocked) as e:
+        if userge.dual_mode and not is_retry:
+            if isinstance(e, UserIsBlocked):
+                await userge.unblock_user(userge.bot.id)
             await userge.send_message(userge.bot.id, "/start")
-            if not msg.text:
-                try:
-                    sentMedia = await media_client.copy_message(
-                        chat_id, msg.chat.id, msg.id
-                    )
-                except (PeerIdInvalid, BadRequest):
-                    sentMedia = await userge.copy_message(
-                        config.LOG_CHANNEL_ID, msg.chat.id, msg.id
-                    )
-                buttons.append(
-                    [InlineKeyboardButton(text="📃 Media Link", url=sentMedia.link)]
-                )
-            await client.send_message(
-                chat_id=config.LOG_CHANNEL_ID,
-                text=text,
-                disable_web_page_preview=True,
-                reply_markup=InlineKeyboardMarkup(buttons),
-            )
+            await handle_mentions(msg, True)
         else:
             raise
+    finally:
+        if dl_loc and os.path.exists(dl_loc):
+            os.remove(dl_loc)
